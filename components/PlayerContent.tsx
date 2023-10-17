@@ -114,6 +114,15 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
     }
   };
 
+  const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (sound) {
+        const progressBar = e.currentTarget;
+        const clickX = e.clientX - progressBar.getBoundingClientRect().left;
+        const newPosition = (clickX / progressBar.clientWidth) * soundDuration;
+        sound.seek(newPosition);
+    }
+};
+
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 h-full">
       <div className="flex w-full justify-start">
@@ -151,17 +160,17 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
           />
         </div>
         <div className="hidden md:flex w-full justify-center items-center gap-x-3">
-          <p className=" text-sm text-neutral-400">{formatTime(soundPosition)}</p>
+          <p className="text-sm text-neutral-400 w-10">{formatTime(soundPosition)}</p>
 
           <div className="w-full">
-            <div className="bg-neutral-300 h-1 rounded-lg">
+            <div className="bg-neutral-300 h-1 rounded-lg cursor-pointer" onClick={handleProgressBarClick}>
               <div
                 className="bg-green-500 h-1 rounded-lg"
                 style={{ width: `${(soundPosition / soundDuration) * 100}%` }}
               ></div>
             </div>
           </div>
-          <p className=" text-sm text-neutral-400">{formatTime(soundDuration)}</p>
+          <p className="text-sm text-neutral-400 w-10">{formatTime(soundDuration)}</p>
         </div>
       </div>
 
