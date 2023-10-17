@@ -126,7 +126,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 h-full">
       <div className="flex w-full justify-start">
-        <div className="flex items-center gap-x-4">
+        <div className="flex items-center gap-x-4 z-10">
           <MediaItem data={song} />
           <LikeButton songId={song.id} />
         </div>
@@ -161,7 +161,6 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
         </div>
         <div className="hidden md:flex w-full justify-center items-center gap-x-3">
           <p className="text-sm text-neutral-400 w-10">{formatTime(soundPosition)}</p>
-
           <div className="w-full">
             <div className="bg-neutral-300 h-1 rounded-lg cursor-pointer" onClick={handleProgressBarClick}>
               <div
@@ -186,7 +185,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
       </div>
       <div className="flex md:hidden w-full justify-center items-center absolute bottom-0 left-0">
           <div className="w-full">
-            <div className="bg-neutral-300 h-1 rounded-lg">
+            <div className="bg-neutral-300 h-1 rounded-lg" onClick={handleProgressBarClick}>
               <div
                 className="bg-green-500 h-1 rounded-lg"
                 style={{ width: `${(soundPosition / soundDuration) * 100}%` }}
