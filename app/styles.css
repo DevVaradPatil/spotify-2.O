@@ -1,0 +1,25 @@
+/* Define the scrollbar track */
+::-webkit-scrollbar {
+    width: 5px; /* Adjust the width to make it thinner or wider */
+  }
+  
+  /* Define the scrollbar thumb */
+  ::-webkit-scrollbar-thumb {
+    background: #3c3c3c; /* Add rounded corners to the thumb */
+  }
+
+  /* Define the scrollbar track */
+  ::-webkit-scrollbar-track {
+    background: transparent; /* Change the color of the scrollbar track to a light gray */
+  }
+  
+  /* Define the scrollbar corner */
+  ::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+  
+  /* Hide the scrollbar buttons (arrows) */
+  ::-webkit-scrollbar-button {
+    display: none;
+  }
+  
