@@ -10,48 +10,45 @@ import PlaylistContent from './components/PlaylistContent';
 
 
 const PlaylistPage = () => {
-    const { id } = useParams();
-    const supabaseClient = useSupabaseClient();
-    const [playlist, setPlaylist] = useState<Playlist | null>(null);
-    const [name, setName] = useState("");
-    const [desc, setDesc] = useState("");
-    const [imagepath, setImagepath] = useState("/images/playlist.png");
-    const [songs, setSongs] = useState<Song[]>([])
+  const { id } = useParams();
+  const supabaseClient = useSupabaseClient();
+  const [playlist, setPlaylist] = useState<Playlist | null>(null);
+  const [name, setName] = useState('');
+  const [desc, setDesc] = useState('');
+  const [imagepath, setImagepath] = useState('/images/playlist.png');
+  const [songs, setSongs] = useState<Song[]>([]);
 
-  
-    useEffect(() => {
-      const fetchPlaylist = async () => {
-        try {
-          const { data, error } = await supabaseClient.from('playlists').select('*').eq('id', id);
-          if (error) {
-            toast.error(error.message)
-          } else if (data) {
-            setPlaylist(data[0]);
-          }
-        } catch (error) {
-          toast.error("Playlist Not Found")
-        }
-      };
-  
-      if (id) {
-        fetchPlaylist();
-      }
-    }, [id, supabaseClient]);
-  
+  useEffect(() => {
     if (!id) {
-      return <div>Loading...</div>;
+      return; // Return early if id is not available
     }
-    
-    useEffect(() => {
-      // Create an async function to fetch songs
-      async function fetchSongs() {
+
+    const fetchPlaylist = async () => {
+      try {
+        const { data, error } = await supabaseClient.from('playlists').select('*').eq('id', id);
+        if (error) {
+          toast.error(error.message);
+        } else if (data) {
+          setPlaylist(data[0]);
+        }
+      } catch (error) {
+        toast.error('Playlist Not Found');
+      }
+    };
+
+    fetchPlaylist(); // Always call the fetch function unconditionally
+  }, [id, supabaseClient]);
+
+  useEffect(() => {
+    if (playlist) {
+      setName(playlist.name);
+      setDesc(playlist.desc);
+      const { data: imageData } = supabaseClient.storage.from('images').getPublicUrl(playlist.image_path);
+      setImagepath(imageData.publicUrl)
+
+      const fetchSongs = async() => {
         try {
-          // Fetch the songs using async/await
-          const { data, error } = await supabaseClient
-            .from('songs')
-            .select('*')
-            .in('id', playlist!.song_ids);
-    
+          const { data, error } = await supabaseClient.from('songs').select('*').in('id', playlist!.song_ids);
           if (error) {
             console.error('Error fetching songs:', error);
           } else {
@@ -61,17 +58,14 @@ const PlaylistPage = () => {
           console.error('Error fetching songs:', error);
         }
       }
-    
-      // Set the name when the playlist data is available
-      if (playlist) {
-        setName(playlist.name);
-        setDesc(playlist.desc);
-        const { data: imageData } = supabaseClient.storage.from('images').getPublicUrl(playlist.image_path);
-        setImagepath(imageData.publicUrl)
-        // Call the as ync function to fetch songs
-        fetchSongs();
-      }
-    }, [playlist, supabaseClient]);
+
+      fetchSongs();
+    }
+  }, [playlist, supabaseClient]);
+
+  if (!id) {
+    return <div>Loading...</div>;
+  }
     
   return (
     <div className="bg-neutral-900 rounded-lg h-full w-full overflow-hidden overflow-y-auto">
