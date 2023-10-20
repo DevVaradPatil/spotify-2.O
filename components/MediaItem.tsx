@@ -34,7 +34,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
             <Image fill src={imageUrl || '/images/liked.png'} alt="media item" className="object-cover"/>
         </div>
         <div className="flex flex-col gap-y-1 overflow-hidden">
-            <p className={`text-white truncate ${player.activeId === data.id && !inPlayer && 'text-green-600'}`}>
+            <p className={`truncate ${player.activeId === data.id && !inPlayer ?  'text-green-600 font-semibold': 'text-white'}`}>
                 {data.title}
             </p>
             <p className="text-neutral-400 text-sm truncate">

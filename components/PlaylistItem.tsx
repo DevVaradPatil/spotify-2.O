@@ -1,21 +1,19 @@
-"use client"
+"use client";
 
 import useLoadImage from "@/hooks/useLoadImage";
-import { Playlist } from "@/types"
+import { Playlist, Song } from "@/types";
 import Image from "next/image";
 import PlayButton from "./PlayButton";
 
 interface PlaylistItemProps {
-    data: Playlist;
+  data: Playlist;
 }
 
-const PlaylistItem: React.FC<PlaylistItemProps> = ({
-    data
-}) => {
-    const imagePath = useLoadImage(data);
+const PlaylistItem: React.FC<PlaylistItemProps> = ({ data }) => {
+  const imagePath = useLoadImage(data);
   return (
     <div
-    className="
+      className="
       relative 
       group 
       flex 
@@ -31,9 +29,9 @@ const PlaylistItem: React.FC<PlaylistItemProps> = ({
       transition 
       p-3
     "
-  >
-    <div 
-      className="
+    >
+      <div
+        className="
         relative 
         aspect-square 
         w-full
@@ -41,35 +39,33 @@ const PlaylistItem: React.FC<PlaylistItemProps> = ({
         rounded-md 
         overflow-hidden
       "
-    >
-      <Image
-        className="object-cover"
-        src={imagePath || '/images/music-placeholder.png'}
-        fill
-        alt="Image"
-      />
-    </div>
-    <div className="flex flex-col items-start w-full pt-4 gap-y-1">
-      <p className="font-semibold truncate w-full">
-        {data.name}
-      </p>
-      <p 
-        className="
+      >
+        <Image
+          className="object-cover"
+          src={imagePath || "/images/music-placeholder.png"}
+          fill
+          alt="Image"
+        />
+      </div>
+      <div className="flex flex-col items-start w-full pt-4 gap-y-1">
+        <p className="font-semibold truncate w-full">{data.name}</p>
+        <p
+          className="
           text-neutral-400 
           text-sm 
           pb-4 
           w-full 
           truncate
         "
-      >
-        {data.desc}
-      </p>
+        >
+          {data.desc}
+        </p>
+      </div>
+      <div className="absolute bottom-24 right-5">
+        <PlayButton/>
+      </div>
     </div>
-    <div className="absolute bottom-24 right-5">
-        <PlayButton />
-    </div>
-  </div>
-  )
-}
+  );
+};
 
-export default PlaylistItem
+export default PlaylistItem;

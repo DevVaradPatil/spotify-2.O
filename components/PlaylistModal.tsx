@@ -54,7 +54,7 @@ const PlaylistModal = () => {
       return toast.error("Failed image upload!");
   }
     const image_path = imageData.path;
-  
+
       // Insert a new playlist into the 'playlists' table.
       const { data, error } = await supabaseClient.from("playlists").insert({
         user_id,

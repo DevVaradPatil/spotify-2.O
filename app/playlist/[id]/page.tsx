@@ -22,7 +22,6 @@ const PlaylistPage = () => {
     if (!id) {
       return; // Return early if id is not available
     }
-
     const fetchPlaylist = async () => {
       try {
         const { data, error } = await supabaseClient.from('playlists').select('*').eq('id', id);

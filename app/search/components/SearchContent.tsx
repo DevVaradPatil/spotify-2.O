@@ -22,7 +22,7 @@ const SearchContent: React.FC<SearchContentProps> = ({
     }
   return (
     <div className="flex flex-col gap-y-2 w-full px-6">
-        {songs.map((song) => (
+        {songs.slice(0,6).map((song) => (
             <div
                 key={song.id}
                 className="flex items-center gap-x-4 w-full"
@@ -31,6 +31,7 @@ const SearchContent: React.FC<SearchContentProps> = ({
                     <MediaItem 
                         onClick={(id: string) => onPlay(id)}
                         data={song}
+                        inPlayer={false}
                     />
                 </div>
             <LikeButton songId={song.id}/>

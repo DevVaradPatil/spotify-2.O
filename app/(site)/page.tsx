@@ -4,6 +4,7 @@ import ListItem from "@/components/ListItem";
 import PageContent from "./components/PageContent";
 import PlaylistContent from "./components/PlaylistContent";
 import getPlaylists from "@/actions/getPlaylist";
+import { useUser } from "@/hooks/useUser";
 
 export const revalidate = 0;
 
