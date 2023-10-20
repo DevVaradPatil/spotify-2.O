@@ -9,7 +9,7 @@ interface PlaylistContentProps {
 }
 
 const PlaylistContent: React.FC<PlaylistContentProps> = ({ playlists }) => {
-  const { user } = useUser(); // Move the hook call outside of the conditional block
+  const { user } = useUser(); 
 
   if (playlists.length === 0) {
     return <div className="mt-4 text-neutral-400">No playlists Available</div>;
