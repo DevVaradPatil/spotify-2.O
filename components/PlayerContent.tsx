@@ -12,6 +12,7 @@ import { AiFillStepBackward, AiFillStepForward } from "react-icons/ai";
 import { HiSpeakerWave, HiSpeakerXMark } from "react-icons/hi2";
 import Slider from "./Slider";
 import usePlayer from "@/hooks/usePlayer";
+import AddToPlaylist from "./AddToPlaylist";
 
 interface PlayerContentProps {
   song: Song;
@@ -26,6 +27,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   const VolumeIcon = volume === 0 ? HiSpeakerXMark : HiSpeakerWave;
   const [soundPosition, setSoundPosition] = useState(0);
   const [soundDuration, setSoundDuration] = useState(0);
+  const currentSongId = player.activeId;
 
   const onPlayNext = () => {
     if (player.ids.length === 0) {
@@ -116,25 +118,27 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
 
   const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
     if (sound) {
-        const progressBar = e.currentTarget;
-        const clickX = e.clientX - progressBar.getBoundingClientRect().left;
-        const newPosition = (clickX / progressBar.clientWidth) * soundDuration;
-        sound.seek(newPosition);
+      const progressBar = e.currentTarget;
+      const clickX = e.clientX - progressBar.getBoundingClientRect().left;
+      const newPosition = (clickX / progressBar.clientWidth) * soundDuration;
+      sound.seek(newPosition);
     }
-};
+  };
+
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 h-full">
       <div className="flex w-full justify-start">
         <div className="flex items-center gap-x-4 z-10">
-          <MediaItem data={song} />
+          <MediaItem data={song} inPlayer />
           <LikeButton songId={song.id} />
         </div>
       </div>
       <div className="flex md:hidden col-auto w-full justify-end items-center">
+      <AddToPlaylist songId={currentSongId}/>
         <div
           onClick={handlePlay}
-          className="h-10 w-10 flex items-center justify-center rounded-full bg-white p-1 cursor-pointer"
+          className="h-10 w-10 ml-1 flex items-center justify-center rounded-full bg-white p-1 cursor-pointer"
         >
           <Icon size={30} className="text-black" />
         </div>
@@ -160,20 +164,28 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
           />
         </div>
         <div className="hidden md:flex w-full justify-center items-center gap-x-3">
-          <p className="text-sm text-neutral-400 w-10">{formatTime(soundPosition)}</p>
+          <p className="text-sm text-neutral-400 w-10">
+            {formatTime(soundPosition)}
+          </p>
           <div className="w-full">
-            <div className="bg-neutral-300 h-1 rounded-lg cursor-pointer" onClick={handleProgressBarClick}>
+            <div
+              className="bg-neutral-300 h-1 rounded-lg cursor-pointer"
+              onClick={handleProgressBarClick}
+            >
               <div
                 className="bg-green-500 h-1 rounded-lg"
                 style={{ width: `${(soundPosition / soundDuration) * 100}%` }}
               ></div>
             </div>
           </div>
-          <p className="text-sm text-neutral-400 w-10">{formatTime(soundDuration)}</p>
+          <p className="text-sm text-neutral-400 w-10">
+            {formatTime(soundDuration)}
+          </p>
         </div>
       </div>
 
-      <div className="hidden md:flex w-full justify-end pr-2">
+      <div className="hidden md:flex w-full items-center justify-end pr-2">
+        <AddToPlaylist songId={currentSongId}/>
         <div className="flex items-center gap-x-2 w-[120px]">
           <VolumeIcon
             onClick={toggleMute}
@@ -184,15 +196,18 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
         </div>
       </div>
       <div className="flex md:hidden w-full justify-center items-center absolute bottom-0 left-0">
-          <div className="w-full">
-            <div className="bg-neutral-300 h-1 rounded-lg" onClick={handleProgressBarClick}>
-              <div
-                className="bg-green-500 h-1 rounded-lg"
-                style={{ width: `${(soundPosition / soundDuration) * 100}%` }}
-              ></div>
-            </div>
+        <div className="w-full">
+          <div
+            className="bg-neutral-300 h-1 rounded-lg"
+            onClick={handleProgressBarClick}
+          >
+            <div
+              className="bg-green-500 h-1 rounded-lg"
+              style={{ width: `${(soundPosition / soundDuration) * 100}%` }}
+            ></div>
           </div>
         </div>
+      </div>
     </div>
   );
 };

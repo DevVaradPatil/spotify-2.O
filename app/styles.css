@@ -6,6 +6,7 @@
   /* Define the scrollbar thumb */
   ::-webkit-scrollbar-thumb {
     background: #3c3c3c; /* Add rounded corners to the thumb */
+    border-radius: 10px;
   }
 
   /* Define the scrollbar track */

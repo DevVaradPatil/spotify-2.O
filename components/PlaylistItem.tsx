@@ -1,26 +1,21 @@
 "use client"
 
 import useLoadImage from "@/hooks/useLoadImage";
-import { Song } from "@/types"
+import { Playlist } from "@/types"
 import Image from "next/image";
 import PlayButton from "./PlayButton";
-import usePlayer from "@/hooks/usePlayer";
 
-interface SongItemProps {
-    data: Song;
-    onClick: (id: string) => void
+interface PlaylistItemProps {
+    data: Playlist;
 }
 
-const SongItem: React.FC<SongItemProps> = ({
-    data,
-    onClick
+const PlaylistItem: React.FC<PlaylistItemProps> = ({
+    data
 }) => {
-  const player = usePlayer();
     const imagePath = useLoadImage(data);
   return (
     <div
-    onClick={() => onClick(data.id)} 
-    className={`
+    className="
       relative 
       group 
       flex 
@@ -35,8 +30,7 @@ const SongItem: React.FC<SongItemProps> = ({
       hover:bg-neutral-400/10 
       transition 
       p-3
-      ${player.activeId === data.id && 'bg-neutral-500/40'}
-    `}
+    "
   >
     <div 
       className="
@@ -56,8 +50,8 @@ const SongItem: React.FC<SongItemProps> = ({
       />
     </div>
     <div className="flex flex-col items-start w-full pt-4 gap-y-1">
-      <p className={`font-semibold truncate w-full ${player.activeId === data.id && 'text-green-500'}`}>
-        {data.title}
+      <p className="font-semibold truncate w-full">
+        {data.name}
       </p>
       <p 
         className="
@@ -68,7 +62,7 @@ const SongItem: React.FC<SongItemProps> = ({
           truncate
         "
       >
-        By {data.author}
+        {data.desc}
       </p>
     </div>
     <div className="absolute bottom-24 right-5">
@@ -78,4 +72,4 @@ const SongItem: React.FC<SongItemProps> = ({
   )
 }
 
-export default SongItem
+export default PlaylistItem

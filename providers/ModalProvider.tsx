@@ -1,6 +1,8 @@
 "use client";
 
+import AddToPlaylist from "@/components/AddToPlaylist";
 import AuthModal from "@/components/AuthModal";
+import PlaylistModal from "@/components/PlaylistModal";
 import SubscribeModal from "@/components/SubscribeModal";
 import UploadModal from "@/components/UploadModal";
 import { ProductWithPrice } from "@/types";
@@ -30,6 +32,7 @@ const ModalProvider: React.FC<ModalProviderProps> = ({
             <AuthModal/>
             <UploadModal/>
             <SubscribeModal products={products}/>
+            <PlaylistModal />
         </>
     )
 };

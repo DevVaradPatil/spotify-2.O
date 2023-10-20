@@ -8,6 +8,14 @@ export interface Song {
   song_path: string;
   image_path: string;
 }
+export interface Playlist {
+  id: string;
+  user_id: string;
+  song_ids: string[];
+  name: string;
+  desc: string;
+  image_path: string;
+}
 
 export interface Product {
   id: string;
