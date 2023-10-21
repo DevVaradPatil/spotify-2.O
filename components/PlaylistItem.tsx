@@ -1,16 +1,22 @@
 "use client";
 
 import useLoadImage from "@/hooks/useLoadImage";
-import { Playlist, Song } from "@/types";
+import { Playlist } from "@/types";
 import Image from "next/image";
 import PlayButton from "./PlayButton";
+import { useUser } from "@/hooks/useUser";
 
 interface PlaylistItemProps {
   data: Playlist;
 }
 
+
 const PlaylistItem: React.FC<PlaylistItemProps> = ({ data }) => {
+  const { user } = useUser();
   const imagePath = useLoadImage(data);
+  if(data.user_id === user?.id){
+    return null;
+  }
   return (
     <div
       className="

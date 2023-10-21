@@ -1,6 +1,5 @@
 import React from "react";
 import PlaylistItem from "@/components/PlaylistItem";
-import { useUser } from "@/hooks/useUser";
 import { Playlist } from "@/types";
 import Link from "next/link";
 

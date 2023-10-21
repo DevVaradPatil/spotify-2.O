@@ -3,8 +3,7 @@ import Header from "@/components/Header";
 import ListItem from "@/components/ListItem";
 import PageContent from "./components/PageContent";
 import PlaylistContent from "./components/PlaylistContent";
-import getPlaylists from "@/actions/getPlaylist";
-import { useUser } from "@/hooks/useUser";
+import getPlaylists from "@/actions/getPlaylists";
 
 export const revalidate = 0;
 
