@@ -1,5 +1,5 @@
 "use client"
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 import Header from '@/components/Header';
 import Image from 'next/image';
 import React, { useEffect, useState } from 'react';
@@ -7,6 +7,7 @@ import { Playlist, Song } from '@/types';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import toast from 'react-hot-toast';
 import PlaylistContent from './components/PlaylistContent';
+import { useUser } from '@/hooks/useUser';
 
 
 const PlaylistPage = () => {
@@ -17,6 +18,8 @@ const PlaylistPage = () => {
   const [desc, setDesc] = useState('');
   const [imagepath, setImagepath] = useState('/images/playlist.png');
   const [songs, setSongs] = useState<Song[]>([]);
+  const { user } = useUser();
+  const router = useRouter()
 
   useEffect(() => {
     if (!id) {
@@ -40,6 +43,9 @@ const PlaylistPage = () => {
 
   useEffect(() => {
     if (playlist) {
+      if(playlist?.user_id !== user?.id){
+        return router.push('/');
+      }
       setName(playlist.name);
       setDesc(playlist.desc);
       const { data: imageData } = supabaseClient.storage.from('images').getPublicUrl(playlist.image_path);

@@ -4,7 +4,6 @@ import useLoadImage from "@/hooks/useLoadImage";
 import { Playlist } from "@/types";
 import Image from "next/image";
 import PlayButton from "./PlayButton";
-import { useUser } from "@/hooks/useUser";
 import { motion } from "framer-motion";
 import { zoomIn } from '@/variants'
 
@@ -16,14 +15,7 @@ interface PlaylistItemProps {
 
 
 const PlaylistItem: React.FC<PlaylistItemProps> = ({ data, index }) => {
-  const { user } = useUser();
   const imagePath = useLoadImage(data);
-  if(!user){
-    return null;
-  }
-  if(data.user_id === user?.id){
-    return null;
-  }
   return (
     <motion.div
     initial="hidden"
