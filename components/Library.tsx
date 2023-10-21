@@ -45,12 +45,14 @@ const Library: React.FC<LibraryProps> = ({
                 <AiOutlinePlus onClick={onClick} size={20} className="text-neutral-400 cursor-pointer hover:text-white tranistion"/>
             </div>
             <div className='flex flex-col gap-y-2 mt-4 px-3'>
-                {songs.map((item)=>(
+                {songs.map((item, index)=>(
                     <MediaItem
                         onClick={(id: string) => onPlay(id)}
                         key={item.id}
                         data={item}
                         inPlayer={false}
+                        index={index}
+                        isLeft
                     />
                 ))}
             </div>

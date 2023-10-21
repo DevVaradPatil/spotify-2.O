@@ -5,20 +5,27 @@ import { Playlist } from "@/types";
 import Image from "next/image";
 import PlayButton from "./PlayButton";
 import { useUser } from "@/hooks/useUser";
+import { motion } from "framer-motion";
+import { zoomIn } from '@/variants'
+
 
 interface PlaylistItemProps {
   data: Playlist;
+  index: number;
 }
 
 
-const PlaylistItem: React.FC<PlaylistItemProps> = ({ data }) => {
+const PlaylistItem: React.FC<PlaylistItemProps> = ({ data, index }) => {
   const { user } = useUser();
   const imagePath = useLoadImage(data);
   if(data.user_id === user?.id){
     return null;
   }
   return (
-    <div
+    <motion.div
+    initial="hidden"
+    animate="show"
+    variants={zoomIn( index*0.25 , 0.25)}
       className="
       relative 
       group 
@@ -70,7 +77,7 @@ const PlaylistItem: React.FC<PlaylistItemProps> = ({ data }) => {
       <div className="absolute bottom-24 right-5">
         <PlayButton/>
       </div>
-    </div>
+    </motion.div>
   );
 };
 

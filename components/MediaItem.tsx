@@ -4,17 +4,23 @@ import useLoadImage from "@/hooks/useLoadImage";
 import usePlayer from "@/hooks/usePlayer";
 import { Song } from "@/types"
 import Image from "next/image";
+import { motion } from "framer-motion";
+import { slideIn } from "@/variants";
 
 interface MediaItemProps{
     data: Song;
     onClick?: (id: string) => void;
     inPlayer?: boolean;
+    index: number;
+    isLeft?:boolean;
 }
 
 const MediaItem: React.FC<MediaItemProps> = ({
     data,
     onClick,
-    inPlayer
+    inPlayer,
+    index,
+    isLeft
 }) => {
     const player = usePlayer();
     const imageUrl = useLoadImage(data);
@@ -26,7 +32,10 @@ const MediaItem: React.FC<MediaItemProps> = ({
         return  player.setId(data.id);
     }
   return (
-    <div
+    <motion.div
+    initial="hidden"
+    animate="show"
+    variants={slideIn( `${isLeft ? "left" : "up"}`, " ", index*0.25 , 0.25)}
         onClick={handleClick}
         className={`flex items-center gap-x-3 cursor-pointer hover:bg-neutral-800/50 w-full p-2 rounded-md ${player.activeId === data.id && !inPlayer && 'bg-neutral-800'}` }
     >
@@ -41,7 +50,7 @@ const MediaItem: React.FC<MediaItemProps> = ({
                 {data.author}
             </p>
         </div>
-    </div>
+    </motion.div>
   )
 }
 

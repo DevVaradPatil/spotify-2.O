@@ -15,10 +15,10 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ playlists }) => {
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-4 mt-4">
-      {playlists.slice(0, 6).map((item) => {
+      {playlists.slice(0, 6).map((item, index) => {
         return (
           <Link href={`/playlist/${item.id}`} key={item.id}>
-            <PlaylistItem data={item} />
+            <PlaylistItem data={item} index={index}/>
           </Link>
         );
       })}

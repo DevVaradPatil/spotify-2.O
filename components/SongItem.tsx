@@ -5,20 +5,27 @@ import { Song } from "@/types"
 import Image from "next/image";
 import PlayButton from "./PlayButton";
 import usePlayer from "@/hooks/usePlayer";
+import { motion } from "framer-motion";
+import { zoomIn } from '@/variants'
 
 interface SongItemProps {
     data: Song;
     onClick: (id: string) => void
+    index: number;
 }
 
 const SongItem: React.FC<SongItemProps> = ({
     data,
-    onClick
+    onClick,
+    index
 }) => {
   const player = usePlayer();
     const imagePath = useLoadImage(data);
   return (
-    <div
+    <motion.div
+    initial="hidden"
+    animate="show"
+    variants={zoomIn( index*0.25 , 0.25)}
     onClick={() => onClick(data.id)} 
     className={`
       relative 
@@ -74,7 +81,7 @@ const SongItem: React.FC<SongItemProps> = ({
     <div className="absolute bottom-24 right-5">
         <PlayButton />
     </div>
-  </div>
+  </motion.div>
   )
 }
 
