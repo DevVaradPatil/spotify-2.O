@@ -18,6 +18,9 @@ interface PlaylistItemProps {
 const PlaylistItem: React.FC<PlaylistItemProps> = ({ data, index }) => {
   const { user } = useUser();
   const imagePath = useLoadImage(data);
+  if(!user){
+    return null;
+  }
   if(data.user_id === user?.id){
     return null;
   }

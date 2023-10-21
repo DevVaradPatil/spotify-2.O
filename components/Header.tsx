@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { twMerge } from "tailwind-merge";
 import { RxCaretLeft, RxCaretRight } from "react-icons/rx";
 import { HiHome } from "react-icons/hi";
@@ -16,6 +16,9 @@ import { AiOutlinePlus } from "react-icons/ai";
 import useSubscribeModal from "@/hooks/useSubscribeModal";
 import useUploadModal from "@/hooks/useUploadModal";
 import CreatePlaylistButton from "./CreatePlaylistButton";
+import { BsThreeDotsVertical } from "react-icons/bs";
+import { HiXMark } from "react-icons/hi2";
+import usePlaylistModal from "@/hooks/usePlaylistModal";
 
 interface HeaderProps {
   children: React.ReactNode;
@@ -28,8 +31,28 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
   const subscribeModal = useSubscribeModal();
   const uploadModal = useUploadModal();
   const { user, subscription } = useUser();
-
   const supabaseClient = useSupabaseClient();
+  const [isOpen, setIsOpen] = useState(false);
+  const playlistModal = usePlaylistModal();
+
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  // Add an event listener to the document to listen for clicks
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("click", handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener("click", handleClickOutside);
+    };
+  }, [isOpen]);
 
   const handleLogout = async () => {
     const { error } = await supabaseClient.auth.signOut();
@@ -44,6 +67,7 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
   };
 
   const onClick = () => {
+    setIsOpen(false);
     if (!user) {
       return authModal.onOpen();
     }
@@ -51,11 +75,13 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
     if (!subscription) {
       return subscribeModal.onOpen();
     }
-
     return uploadModal.onOpen();
   };
 
-  
+  const createPlaylist = () => {
+    setIsOpen(false);
+    playlistModal.onOpen();
+  };
 
   return (
     <div
@@ -92,32 +118,53 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
           >
             <BiSearch size={20} className="text-black" />
           </button>
-          {user &&
-          <button
-            onClick={onClick}
-            className="rounded-full p-2 bg-white/80 flex items-center justify-center hover:opacity-75"
-          >
-            <AiOutlinePlus size={20} className="text-black" />
-          </button>
-          }
+          {user && (
+            <div className="relative" ref={menuRef}>
+              <button
+                onClick={() => setIsOpen(!isOpen)}
+                className="rounded-full p-2 bg-white text-black flex items-center justify-center hover:opacity-75"
+              >
+                {isOpen ? (
+                  <HiXMark size={22} />
+                ) : (
+                  <BsThreeDotsVertical size={20} />
+                )}
+              </button>
+              <div
+                className={`flex justify-center items-start flex-col gap-2 bg-neutral-200 p-2 rounded-lg text-black z-20 absolute w-[150px] mt-2 transition-all duration-300 ${
+                  isOpen ? "h-[80px] opacity-100" : "h-0 opacity-0"
+                }`}
+              >
+                {isOpen && 
+                <>
+                <p className="font-semibold cursor-pointer" onClick={onClick}>
+                  Add to Library
+                </p>
+                <div className="h-px w-full bg-neutral-500" />
+                <p className="font-semibold cursor-pointer" onClick={createPlaylist}>
+                  Create a Playlist
+                </p>
+                </>
+                  }
+              </div>
+            </div>
+          )}
         </div>
         <div className=" flex justify-between items-center gap-x-4">
-          
-          
           {user ? (
             <>
-            <CreatePlaylistButton/>
-            <div className="flex gap-x-4 items-center">
-              <Button onClick={handleLogout} className="bg-white px-6 py-2">
-                Logout
-              </Button>
-              <Button
-                onClick={() => router.push("/account")}
-                className="bg-white"
-              >
-                <FaUserAlt />
-              </Button>
-            </div>
+              <CreatePlaylistButton />
+              <div className="flex gap-x-4 items-center">
+                <Button onClick={handleLogout} className="bg-white px-6 py-2">
+                  Logout
+                </Button>
+                <Button
+                  onClick={() => router.push("/account")}
+                  className="bg-white"
+                >
+                  <FaUserAlt />
+                </Button>
+              </div>
             </>
           ) : (
             <>
