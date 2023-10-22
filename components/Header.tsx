@@ -83,6 +83,11 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
     playlistModal.onOpen();
   };
 
+  const handleExplore = () => {
+    playlistModal.onClose()
+    router.push('/all');
+  }
+
   return (
     <div
       className={twMerge(
@@ -125,14 +130,14 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
                 className="rounded-full p-2 bg-white text-black flex items-center justify-center hover:opacity-75"
               >
                 {isOpen ? (
-                  <HiXMark size={22} />
+                  <HiXMark size={20} />
                 ) : (
                   <BsThreeDotsVertical size={20} />
                 )}
               </button>
               <div
                 className={`flex justify-center items-start flex-col gap-2 bg-neutral-200 p-2 rounded-lg text-black z-20 absolute w-[150px] mt-2 transition-all duration-300 ${
-                  isOpen ? "h-[80px] opacity-100" : "h-0 opacity-0"
+                  isOpen ? "h-[120px] opacity-100" : "h-0 opacity-0"
                 }`}
               >
                 {isOpen && 
@@ -140,9 +145,13 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
                 <p className="font-semibold cursor-pointer" onClick={onClick}>
                   Add to Library
                 </p>
-                <div className="h-px w-full bg-neutral-500" />
+                <div className="bg-neutral-600 h-px w-[130px] py-[0.3px]"/>
                 <p className="font-semibold cursor-pointer" onClick={createPlaylist}>
                   Create a Playlist
+                </p>
+                <div className="bg-neutral-600 h-px w-[130px] py-[0.3px]"/>
+                <p className="font-semibold cursor-pointer" onClick={handleExplore}>
+                  Explore All Songs
                 </p>
                 </>
                   }

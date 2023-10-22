@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import { useMemo } from "react";
 import { HiHome } from "react-icons/hi";
 import { BiSearch } from "react-icons/bi";
+import { MdLibraryMusic } from 'react-icons/md'
 import Box from "./Box";
 import SidebarItem from "./SidebarItem";
 import Library from "./Library";
@@ -34,6 +35,12 @@ const Sidebar: React.FC<SidebarProps> = ({
             label: 'Search',
             active: pathname === '/search',
             href: '/search',
+        },
+        {
+            icon: MdLibraryMusic,
+            label: 'Explore All',
+            active: pathname === '/all',
+            href: '/all',
         }
     ], [pathname]);
 
