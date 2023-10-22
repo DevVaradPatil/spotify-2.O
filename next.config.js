@@ -2,7 +2,8 @@
 const nextConfig = {
     images: {
         domains: [
-            "cbtxuixvqgfsqnidxutk.supabase.co"
+            "cbtxuixvqgfsqnidxutk.supabase.co",
+            "vitals.vercel-insights.com"
         ]
     }
 }
