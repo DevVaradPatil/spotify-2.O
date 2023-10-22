@@ -37,7 +37,6 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
 
   const menuRef = useRef<HTMLDivElement | null>(null);
 
-  // Add an event listener to the document to listen for clicks
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
@@ -91,10 +90,12 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
   return (
     <div
       className={twMerge(
-        `h-fit p-6 bg-gradient-to-b from-emerald-800`,
+        `h-fit css-selector`,
         className
       )}
     >
+      <div className="p-6 h-fit bg-gradient-to-t from-[#171717]">
+
       <div className="w-full mb-4 flex items-center justify-between">
         <div className="hidden md:flex gap-x-2 items-center">
           <button
@@ -198,6 +199,7 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
         </div>
       </div>
       {children}
+      </div>
     </div>
   );
 };
