@@ -108,7 +108,7 @@ const PlaylistModal = () => {
         </div>
 
         <Button disabled={isLoading} type="submit">
-          Create
+          {isLoading ? "Creating..." : "Create"}
         </Button>
       </form>
     </Modal>

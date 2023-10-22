@@ -4,6 +4,8 @@ import { Song } from '@/types'
 import Image from 'next/image';
 import React from 'react'
 import { FaPlay } from 'react-icons/fa';
+import { motion } from 'framer-motion';
+import { slideIn } from '@/variants';
 
 interface RandomButtonProps {
     songs: Song[];
@@ -16,7 +18,10 @@ const RandomButton: React.FC<RandomButtonProps> = ({ songs }) => {
         onPlay(songs[randomIndex].id);
     }
   return (
-    <button
+    <motion.button
+    initial="hidden"
+    animate="show"
+    variants={slideIn( "up", " ", 0.50 , 0.25)}
       onClick={onClick}
       className="relative  group hidden md:flex items-center rounded-md overflow-hidden gap-x-4 bg-neutral-100/10 hover:bg-neutral-100/20 transition pr-4"
     >
@@ -27,7 +32,7 @@ const RandomButton: React.FC<RandomButtonProps> = ({ songs }) => {
       <div className="absolute transition opacity-0 rounded-full flex itec justify-center bg-green-500 p-4 drop-shadow-md right-5 group-hover:opacity-100 hover:scale-110">
         <FaPlay className="text-black" />
       </div>
-    </button>
+    </motion.button>
   )
 }
 
