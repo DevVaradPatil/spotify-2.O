@@ -4,6 +4,7 @@ import ListItem from "@/components/ListItem";
 import PageContent from "./components/PageContent";
 import PlaylistContent from "./components/PlaylistContent";
 import getPlaylists from "@/actions/getPlaylists";
+import RandomButton from "@/components/RandomButton";
 
 export const revalidate = 0;
 
@@ -20,6 +21,7 @@ export default async function Home() {
           <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-3 mt-4">
             <ListItem image="/images/liked.png" name="Liked Songs" href="/liked" />
             <ListItem image="/images/music.png" name="Your Library" href="/library" />
+            <RandomButton songs={songs} />
           </div>
         </div>
       </Header>
