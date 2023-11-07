@@ -25,8 +25,8 @@ const RandomButton: React.FC<RandomButtonProps> = ({ songs }) => {
       onClick={onClick}
       className="relative  group hidden md:flex items-center rounded-md overflow-hidden gap-x-4 bg-neutral-100/10 hover:bg-neutral-100/20 transition pr-4"
     >
-      <div className="relative min-h-[64px] min-w-[64px] bg-gradient-to-br from-pink-700 to-neutral-200">
-        <Image className="object-cover" fill src='/images/magic-wand.gif' alt="image" />
+      <div className="relative min-h-[64px] min-w-[64px] bg-gradient-to-br from-green-700 to-blue-200">
+        <Image className=" scale-75" fill src='/images/random.png' alt="image"   />
       </div>
       <p className="font-md truncate py-5">Play Random Song</p>
       <div className="absolute transition opacity-0 rounded-full flex itec justify-center bg-green-500 p-4 drop-shadow-md right-5 group-hover:opacity-100 hover:scale-110">
