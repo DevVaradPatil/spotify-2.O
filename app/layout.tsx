@@ -11,6 +11,7 @@ import ToasterProvider from "@/providers/ToasterProvider";
 import getSongsByUserId from "@/actions/getSongsByUserId";
 import Player from "@/components/Player";
 import getActiveProductsWithPrices from "@/actions/getActiveProductsWithPrices";
+import { SpeedInsights } from "@vercel/speed-insights/next"
 
 const font = Figtree({ subsets: ["latin"] });
 
@@ -40,6 +41,7 @@ export default async function RootLayout({
           </UserProvider>
         </SupabaseProvider>
         <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );
