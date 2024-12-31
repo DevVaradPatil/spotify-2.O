@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "start:ws": "ts-node server.ts"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.0.5",
@@ -19,7 +20,9 @@
     "@supabase/supabase-js": "^2.38.1",
     "@vercel/analytics": "^1.1.1",
     "@vercel/speed-insights": "^1.0.2",
+    "dotenv": "^16.4.7",
     "framer-motion": "^10.16.4",
+    "lodash.debounce": "^4.0.8",
     "next": "13.5.4",
     "query-string": "^8.1.0",
     "react": "^18",
@@ -29,13 +32,16 @@
     "react-icons": "^4.11.0",
     "react-router-dom": "^6.17.0",
     "react-spinners": "^0.13.8",
+    "socket.io-client": "^4.8.1",
     "stripe": "^13.9.0",
     "tailwind-merge": "^1.14.0",
     "uniqid": "^5.4.0",
     "use-sound": "^4.0.1",
+    "ws": "^8.18.0",
     "zustand": "^4.4.3"
   },
   "devDependencies": {
+    "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

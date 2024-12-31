@@ -11,6 +11,7 @@ import Library from "./Library";
 import { Song } from "@/types";
 import usePlayer from "@/hooks/usePlayer";
 import { twMerge } from "tailwind-merge";
+import { ImHeadphones } from "react-icons/im";
 
 interface SidebarProps {
     children: React.ReactNode;
@@ -41,7 +42,13 @@ const Sidebar: React.FC<SidebarProps> = ({
             label: 'Explore All',
             active: pathname === '/all',
             href: '/all',
-        }
+        },
+        {
+            icon: ImHeadphones,
+            label: 'Music Room',
+            active: pathname === '/music-room',
+            href: '/music-room',
+        },
     ], [pathname]);
 
   return (
