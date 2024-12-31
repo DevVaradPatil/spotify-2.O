@@ -47,7 +47,7 @@ const Room = () => {
   }
 
   return (
-    <div className="bg-neutral-900 rounded-lg p-6 h-full w-full overflow-hidden overflow-y-auto relative">
+    <div className="bg-neutral-900 rounded-lg p-2 md:p-6 h-full w-full overflow-hidden  relative">
       <div className="absolute top-2 right-2 text-white opacity-50">{roomCode}</div>
       <div className="flex my-5 w-full overflow-hidden bg-black rounded-full justify-evenly items-center">
         <button
