@@ -23,7 +23,7 @@ const Chat: React.FC<ChatProps> = ({ roomCode }) => {
       console.log("WebSocket connection opened");
     };
 
-    socket.current.onmessage = async (event) => {
+    socket.current.onmessage = async (event: MessageEvent) => {
       const data = JSON.parse(event.data);
       const { email, content } = data;
 

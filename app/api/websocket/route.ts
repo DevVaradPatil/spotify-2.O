@@ -1,13 +1,13 @@
-import { Server } from 'ws';
+import { WebSocketServer as Server } from 'ws';
 import { createClient } from '@supabase/supabase-js';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { parse } from 'url';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-const clearOldMessages = async () => {
+const clearOldMessages = async (): Promise<void> => {
   const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
   const { error } = await supabase
     .from('messages')
@@ -24,18 +24,18 @@ const clearOldMessages = async () => {
 // Schedule the clearOldMessages function to run every hour
 setInterval(clearOldMessages, 60 * 60 * 1000);
 
-export default function handler(req, res) {
-  if (res.socket.server.ws) {
+export default function handler(req: NextApiRequest, res: NextApiResponse): void {
+  if ((res.socket as any).server.ws) {
     console.log('WebSocket server already running');
     res.end();
     return;
   }
 
-  const wss = new Server({ server: res.socket.server });
+  const wss = new Server({ server: (res.socket as any).server });
 
-  wss.on('connection', async (socket, req) => {
-    const { query } = parse(req.url, true);
-    const roomCode = query.roomCode;
+  wss.on('connection', async (socket : any, req : any) => {
+    const { query } = parse(req.url!, true);
+    const roomCode = query.roomCode as string;
     console.log('Client connected to room:', roomCode);
 
     // Fetch previous messages from Supabase
@@ -49,13 +49,13 @@ export default function handler(req, res) {
       console.error('Error fetching messages:', error);
     } else {
       // Send all previous messages to the new client
-      messages.forEach((message) => {
+      messages.forEach((message: { email: string, content: string }) => {
         socket.send(JSON.stringify({ email: message.email, content: message.content }));
       });
     }
 
-    socket.on('message', async (data) => {
-      const { email, message } = JSON.parse(data);
+    socket.on('message', async (data: any) => {
+      const { email, message } = JSON.parse(data.toString());
       console.log('Received:', message, 'from:', email);
 
       // Store the message in Supabase
@@ -68,7 +68,7 @@ export default function handler(req, res) {
       }
 
       // Broadcast the message to all connected clients
-      wss.clients.forEach((client) => {
+      wss.clients.forEach((client:any) => {
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify({ email, content: message }));
         }
@@ -79,12 +79,12 @@ export default function handler(req, res) {
       console.log('Client disconnected');
     });
 
-    socket.on('error', (error) => {
+    socket.on('error', (error: any) => {
       console.error('WebSocket error:', error);
     });
   });
 
-  res.socket.server.ws = wss;
+  (res.socket as any).server.ws = wss;
   console.log('WebSocket server started');
   res.end();
 }
