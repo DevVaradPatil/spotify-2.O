@@ -94,7 +94,7 @@ const Chat: React.FC<ChatProps> = ({ roomCode }) => {
                   msg.email === user?.email ? "text-right" : "text-left"
                 }`}
                 >
-                {msg.email.slice(0, 5)}
+                {msg.email!.slice(0, 5)}
                 </span>
               {msg.content}
             </li>

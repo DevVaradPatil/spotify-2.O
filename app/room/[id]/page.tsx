@@ -3,12 +3,12 @@ import Player from "@/components/Player";
 import { useUser } from "@/hooks/useUser";
 import useAuthModal from "@/hooks/useAuthModel";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { Song } from "@/types";
 import SearchContent from "@/app/search/components/SearchContent";
-import SearchInput from "@/components/SearchInput";
-import Chat from "./components/Chat";
 import debounce from "lodash.debounce";
+import Chat from "./components/Chat";
+import usePlayer from "@/hooks/usePlayer";
 
 const Room = () => {
   const pathname = usePathname();
@@ -18,6 +18,9 @@ const Room = () => {
   const [activeTab, setActiveTab] = useState("songs");
   const [songs, setSongs] = useState<Song[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
+  const player = usePlayer();
+  const wsRef = useRef<WebSocket | null>(null);
+  const [lastPlayedSongId, setLastPlayedSongId] = useState(player.activeId || "");
 
   useEffect(() => {
     if (!user) {
@@ -41,6 +44,74 @@ const Room = () => {
       debouncedSearch.cancel();
     };
   }, [searchQuery]);
+
+  const connectWebSocket = () => {
+    const ws = new WebSocket(`wss://spotify-backend-r813.onrender.com/?roomCode=${roomCode}`);
+    wsRef.current = ws;
+
+    ws.onopen = () => {
+      console.log("WebSocket connection established");
+    };
+
+    ws.onmessage = (event) => {
+      console.log("Received message:", event.data);
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "PLAY_SONG") {
+          player.setId(data.songId);
+          player.setIds([data.songId]);
+        }
+      } catch (error) {
+        console.error("Error parsing WebSocket message:", error);
+      }
+    };
+
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error);
+    };
+
+    ws.onclose = () => {
+      console.log("WebSocket connection closed, reconnecting...");
+      setTimeout(connectWebSocket, 1000); // Reconnect after 1 second
+    };
+  };
+
+  useEffect(() => {
+    connectWebSocket();
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close();
+      }
+    };
+  }, [roomCode]);
+
+  const handlePlaySong = (songId: string) => {
+    const sendMessage = () => {
+      if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+        console.log("Sending message:", { type: "PLAY_SONG", songId });
+        wsRef.current.send(JSON.stringify({ type: "PLAY_SONG", songId }));
+      } else if (wsRef.current && wsRef.current.readyState === WebSocket.CONNECTING) {
+        setTimeout(sendMessage, 100); // Retry after 100ms
+      } else {
+        console.error("WebSocket is not open. Ready state:", wsRef.current?.readyState);
+      }
+    };
+
+    player.setId(songId);
+    player.setIds([songId]);
+    sendMessage();
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (player.activeId && player.activeId !== lastPlayedSongId) {
+        setLastPlayedSongId(player.activeId);
+        handlePlaySong(player.activeId);
+      }
+    }, 1000); // Check every second
+
+    return () => clearInterval(interval);
+  }, [player, lastPlayedSongId]);
 
   if (!user) {
     return null;
