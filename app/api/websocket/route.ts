@@ -24,7 +24,7 @@ const clearOldMessages = async (): Promise<void> => {
 // Schedule the clearOldMessages function to run every hour
 setInterval(clearOldMessages, 60 * 60 * 1000);
 
-export default function handler(req: NextApiRequest, res: NextApiResponse): void {
+const handler = (req: NextApiRequest, res: NextApiResponse): void => {
   if ((res.socket as any).server.ws) {
     console.log('WebSocket server already running');
     res.end();
@@ -33,7 +33,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse): void
 
   const wss = new Server({ server: (res.socket as any).server });
 
-  wss.on('connection', async (socket : any, req : any) => {
+  wss.on('connection', async (socket: any, req: any) => {
     const { query } = parse(req.url!, true);
     const roomCode = query.roomCode as string;
     console.log('Client connected to room:', roomCode);
@@ -68,7 +68,7 @@ export default function handler(req: NextApiRequest, res: NextApiResponse): void
       }
 
       // Broadcast the message to all connected clients
-      wss.clients.forEach((client:any) => {
+      wss.clients.forEach((client: any) => {
         if (client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify({ email, content: message }));
         }
@@ -87,4 +87,6 @@ export default function handler(req: NextApiRequest, res: NextApiResponse): void
   (res.socket as any).server.ws = wss;
   console.log('WebSocket server started');
   res.end();
-}
+};
+
+export default handler;
