@@ -1,6 +1,6 @@
 import { WebSocketServer as Server } from 'ws';
 import { createClient } from '@supabase/supabase-js';
-import { NextApiRequest, NextApiResponse } from 'next';
+import { NextRequest, NextResponse } from 'next/server';
 import { parse } from 'url';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
@@ -24,14 +24,20 @@ const clearOldMessages = async (): Promise<void> => {
 // Schedule the clearOldMessages function to run every hour
 setInterval(clearOldMessages, 60 * 60 * 1000);
 
-const handler = (req: NextApiRequest, res: NextApiResponse): void => {
-  if ((res.socket as any).server.ws) {
-    console.log('WebSocket server already running');
-    res.end();
-    return;
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url);
+  const roomCode = searchParams.get('roomCode');
+
+  if (!roomCode) {
+    return NextResponse.json({ error: 'Invalid room code' }, { status: 400 });
   }
 
-  const wss = new Server({ server: (res.socket as any).server });
+  if ((req as any).socket.server.ws) {
+    console.log('WebSocket server already running');
+    return NextResponse.json({ message: 'WebSocket server already running' });
+  }
+
+  const wss = new Server({ server: (req as any).socket.server });
 
   wss.on('connection', async (socket: any, req: any) => {
     const { query } = parse(req.url!, true);
@@ -84,9 +90,7 @@ const handler = (req: NextApiRequest, res: NextApiResponse): void => {
     });
   });
 
-  (res.socket as any).server.ws = wss;
+  (req as any).socket.server.ws = wss;
   console.log('WebSocket server started');
-  res.end();
-};
-
-export default handler;
+  return NextResponse.json({ message: 'WebSocket server started' });
+}
