@@ -26,7 +26,8 @@ const clearOldMessages = async () => {
 setInterval(clearOldMessages, 60 * 60 * 1000);
 
 server.on('connection', async (socket, req) => {
-  const roomCode = req.url.split('/').pop();
+  const urlParams = new URLSearchParams(req.url.split('?')[1]);
+  const roomCode = urlParams.get('roomCode');
   console.log('Client connected to room:', roomCode);
 
   // Fetch previous messages from Supabase
@@ -41,29 +42,40 @@ server.on('connection', async (socket, req) => {
   } else {
     // Send all previous messages to the new client
     messages.forEach((message) => {
-      socket.send(JSON.stringify({ email: message.email, content: message.content }));
+      socket.send(JSON.stringify({ type: 'CHAT', email: message.email, content: message.content }));
     });
   }
 
   socket.on('message', async (data) => {
-    const { email, message } = JSON.parse(data);
-    console.log('Received:', message, 'from:', email);
+    const parsedData = JSON.parse(data);
+    console.log('Received:', parsedData);
 
-    // Store the message in Supabase
-    const { error } = await supabase
-      .from('messages')
-      .insert([{ room_code: roomCode, email, content: message }]);
+    if (parsedData.type === 'PLAY_SONG') {
+      // Broadcast the PLAY_SONG message to all connected clients
+      server.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({ type: 'PLAY_SONG', songId: parsedData.songId }));
+        }
+      });
+    } else if (parsedData.type === 'CHAT') {
+      const { email, content } = parsedData;
 
-    if (error) {
-      console.error('Error storing message:', error);
-    }
+      // Store the message in Supabase
+      const { error } = await supabase
+        .from('messages')
+        .insert([{ room_code: roomCode, email, content }]);
 
-    // Broadcast the message to all connected clients
-    server.clients.forEach((client) => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({ email, content: message }));
+      if (error) {
+        console.error('Error storing message:', error);
       }
-    });
+
+      // Broadcast the message to all connected clients
+      server.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+          client.send(JSON.stringify({ type: 'CHAT', email, content }));
+        }
+      });
+    }
   });
 
   socket.on('close', () => {

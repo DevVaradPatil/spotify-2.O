@@ -1,7 +1,7 @@
 "use client";
 
 import { BsPauseFill, BsPlayFill } from "react-icons/bs";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 // @ts-ignore
 import useSound from "use-sound";
 
@@ -21,12 +21,8 @@ interface PlayerContentProps {
 
 const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   const player = usePlayer();
-  const [volume, setVolume] = useState(1);
-  const [isPlaying, setisPlaying] = useState(false);
-  const Icon = isPlaying ? BsPauseFill : BsPlayFill;
-  const VolumeIcon = volume === 0 ? HiSpeakerXMark : HiSpeakerWave;
-  const [soundPosition, setSoundPosition] = useState(0);
-  const [soundDuration, setSoundDuration] = useState(0);
+  const Icon = player.isPlaying ? BsPauseFill : BsPlayFill;
+  const VolumeIcon = player.volume === 0 ? HiSpeakerXMark : HiSpeakerWave;
   const currentSongId = player.activeId;
 
   const onPlayNext = () => {
@@ -60,20 +56,20 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   };
 
   const [play, { pause, sound }] = useSound(songUrl, {
-    volume: volume,
-    onplay: () => setisPlaying(true),
+    volume: player.volume,
+    onplay: () => player.setIsPlaying(true),
     onend: () => {
-      setisPlaying(false);
+      player.setIsPlaying(false);
       onPlayNext();
     },
-    onpause: () => setisPlaying(false),
+    onpause: () => player.setIsPlaying(false),
     format: ["mp3"],
   });
 
   // Update sound position and duration when the sound is ready
   useEffect(() => {
     if (sound) {
-      setSoundDuration(sound.duration());
+      player.setSoundDuration(sound.duration());
     }
   }, [sound]);
 
@@ -81,7 +77,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   useEffect(() => {
     const updatePosition = () => {
       if (sound) {
-        setSoundPosition(sound.seek());
+        player.setSoundPosition(sound.seek());
       }
     };
 
@@ -101,7 +97,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   }, [sound]);
 
   const handlePlay = () => {
-    if (!isPlaying) {
+    if (!player.isPlaying) {
       play();
     } else {
       pause();
@@ -109,10 +105,10 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   };
 
   const toggleMute = () => {
-    if (volume === 0) {
-      setVolume(1);
+    if (player.volume === 0) {
+      player.setVolume(1);
     } else {
-      setVolume(0);
+      player.setVolume(0);
     }
   };
 
@@ -120,11 +116,11 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
     if (sound) {
       const progressBar = e.currentTarget;
       const clickX = e.clientX - progressBar.getBoundingClientRect().left;
-      const newPosition = (clickX / progressBar.clientWidth) * soundDuration;
+      const newPosition = (clickX / progressBar.clientWidth) * player.soundDuration;
       sound.seek(newPosition);
+      player.setSoundPosition(newPosition);
     }
   };
-
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 h-full">
@@ -165,7 +161,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
         </div>
         <div className="hidden md:flex w-full justify-center items-center gap-x-3">
           <p className="text-sm text-neutral-400 w-10">
-            {formatTime(soundPosition)}
+            {formatTime(player.soundPosition)}
           </p>
           <div className="w-full">
             <div
@@ -174,12 +170,12 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
             >
               <div
                 className="bg-green-500 h-1 rounded-lg"
-                style={{ width: `${(soundPosition / soundDuration) * 100}%` }}
+                style={{ width: `${(player.soundPosition / player.soundDuration) * 100}%` }}
               ></div>
             </div>
           </div>
           <p className="text-sm text-neutral-400 w-10">
-            {formatTime(soundDuration)}
+            {formatTime(player.soundDuration)}
           </p>
         </div>
       </div>
@@ -192,7 +188,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
             className=" cursor-pointer"
             size={34}
           />
-          <Slider value={volume} onChange={(value) => setVolume(value)} />
+          <Slider value={player.volume} onChange={(value) => player.setVolume(value)} />
         </div>
       </div>
       <div className="flex md:hidden w-full justify-center items-center absolute bottom-0 left-0">
@@ -203,7 +199,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
           >
             <div
               className="bg-green-500 h-1 rounded-lg"
-              style={{ width: `${(soundPosition / soundDuration) * 100}%` }}
+              style={{ width: `${(player.soundPosition / player.soundDuration) * 100}%` }}
             ></div>
           </div>
         </div>

@@ -3,7 +3,8 @@ import { useState } from "react";
 import useAuthModal from "@/hooks/useAuthModel";
 import { useUser } from "@/hooks/useUser";
 import { useRouter } from "next/navigation";
-import { IoIosRocket } from "react-icons/io";
+import { IoIosRocket} from "react-icons/io";
+import { FaDice } from "react-icons/fa6";
 
 const MusicRoom = () => {
   const [roomCode, setRoomCode] = useState("");
@@ -12,7 +13,7 @@ const MusicRoom = () => {
   const authModal = useAuthModal();
 
   const handleJoinRoom = () => {
-    if (roomCode.trim()) {
+    if (roomCode.trim().length === 6) {
       router.push(`/room/${roomCode}`);
     }
   };
@@ -22,6 +23,17 @@ const MusicRoom = () => {
       handleJoinRoom();
     } else {
       authModal.onOpen();
+    }
+  };
+
+  const generateRoomCode = () => {
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    setRoomCode(code);
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Enter") {
+      onClick();
     }
   };
 
@@ -35,16 +47,27 @@ const MusicRoom = () => {
           type="text"
           value={roomCode}
           onChange={(e) => setRoomCode(e.target.value.toUpperCase())}
+          onKeyPress={handleKeyPress}
           placeholder="Eg. FQPOS7"
+          maxLength={6}
           className="p-3 border border-gray-300 rounded mb-4 w-full max-w-md text-gray-100"
         />
-        <button
-          onClick={onClick}
-          className="bg-green-500 text-white text-lg px-6 py-3 rounded-full hover:bg-green-600 transition flex items-center gap-2"
-        >
-          Join Room
-          <IoIosRocket fontSize={22} />
-        </button>
+        <div className="flex flex-col gap-4">
+          <button
+            onClick={onClick}
+            className="bg-green-500 justify-center text-white text-lg px-6 py-3 rounded-full hover:bg-green-600 transition flex items-center gap-2"
+          >
+            Join Room
+            <IoIosRocket fontSize={22} />
+          </button>
+          <button
+            onClick={generateRoomCode}
+            className="bg-blue-500 justify-center text-white text-lg px-6 py-3 rounded-full hover:bg-blue-600 transition flex items-center gap-2"
+          >
+            Generate Code
+            <FaDice fontSize={22} />
+          </button>
+        </div>
       </div>
     </div>
   );

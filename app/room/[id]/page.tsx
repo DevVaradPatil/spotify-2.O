@@ -60,6 +60,15 @@ const Room = () => {
         if (data.type === "PLAY_SONG") {
           player.setId(data.songId);
           player.setIds([data.songId]);
+        } else if (data.type === "PAUSE_SONG") {
+          player.setIsPlaying(false);
+        } else if (data.type === "PLAY_SONG") {
+          player.setIsPlaying(true);
+        } else if (data.type === "UPDATE_POSITION") {
+          player.setSoundPosition(data.position);
+        } else if (data.type === "CHAT") {
+          // Handle chat message
+          console.log("Chat message received:", data.message);
         }
       } catch (error) {
         console.error("Error parsing WebSocket message:", error);
@@ -102,16 +111,41 @@ const Room = () => {
     sendMessage();
   };
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      if (player.activeId && player.activeId !== lastPlayedSongId) {
-        setLastPlayedSongId(player.activeId);
-        handlePlaySong(player.activeId);
-      }
-    }, 1000); // Check every second
+  const handlePauseSong = () => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: "PAUSE_SONG" }));
+    }
+  };
 
-    return () => clearInterval(interval);
-  }, [player, lastPlayedSongId]);
+  const handlePlayerSong = () => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: "PLAY_SONG" }));
+    }
+  };
+
+  const handleUpdatePosition = (position: number) => {
+    if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+      wsRef.current.send(JSON.stringify({ type: "UPDATE_POSITION", position }));
+    }
+  };
+
+  useEffect(() => {
+    if (player.activeId && player.activeId !== lastPlayedSongId) {
+      setLastPlayedSongId(player.activeId);
+      handlePlaySong(player.activeId);
+    }
+  }, [player.activeId, lastPlayedSongId]);
+
+  // useEffect(() => {
+  //   if (player.activeId) {
+  //     if (player.isPlaying) {
+  //       handlePlayerSong();
+  //     } else {
+  //       handlePauseSong();
+  //     }
+  //     handleUpdatePosition(player.soundPosition);
+  //   }
+  // }, [player.isPlaying, player.soundPosition]);
 
   if (!user) {
     return null;
@@ -120,7 +154,7 @@ const Room = () => {
   return (
     <div className="bg-neutral-900 rounded-lg p-2 md:p-6 h-full w-full overflow-hidden  relative">
       <div className="absolute top-2 right-2 text-white opacity-50">{roomCode}</div>
-      <div className="flex my-5 w-full overflow-hidden bg-black rounded-full justify-evenly items-center">
+      <div className="flex my-2 w-full overflow-hidden bg-black rounded-full justify-evenly items-center">
         <button
           onClick={() => setActiveTab("songs")}
           className={`w-full py-3 flex items-center px-5 justify-center ${activeTab === "songs" ? "bg-neutral-700" : ""}`}
@@ -150,7 +184,7 @@ const Room = () => {
         )}
         {activeTab === "chat" && (
           <div className="flex flex-col flex-grow">
-            <Chat roomCode={roomCode} />
+            <Chat roomCode={roomCode} socket={wsRef.current} />
           </div>
         )}
       </div>

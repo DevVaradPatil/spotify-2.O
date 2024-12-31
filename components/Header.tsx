@@ -19,6 +19,7 @@ import CreatePlaylistButton from "./CreatePlaylistButton";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { HiXMark } from "react-icons/hi2";
 import usePlaylistModal from "@/hooks/usePlaylistModal";
+import { ImHeadphones } from "react-icons/im";
 
 interface HeaderProps {
   children: React.ReactNode;
@@ -123,6 +124,12 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
             className="rounded-full p-2 bg-white flex items-center justify-center hover:opacity-75"
           >
             <BiSearch size={20} className="text-black" />
+          </button>
+          <button
+            onClick={() => router.push("/music-room")}
+            className="rounded-full p-2 bg-white flex items-center justify-center hover:opacity-75"
+          >
+            <ImHeadphones size={20} className="text-black" />
           </button>
           {user && (
             <div className="relative" ref={menuRef}>
