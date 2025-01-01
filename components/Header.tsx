@@ -167,20 +167,24 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
             </div>
           )}
         </div>
-        <div className=" flex justify-between items-center gap-x-4">
+        <div className="flex items-center justify-end w-full gap-x-4">
           {user ? (
             <>
               <CreatePlaylistButton />
-              <div className="flex gap-x-4 items-center">
-                <Button onClick={handleLogout} className="bg-white px-6 py-2">
+              <div className="flex gap-x-4 items-center justify-end w-fit">
+                <Button onClick={handleLogout} className="bg-white w-fit px-6 py-2">
                   Logout
                 </Button>
-                <Button
+                <button
                   onClick={() => router.push("/account")}
-                  className="bg-white"
+                  className="flex rounded-full bg-white w-10 h-10 overflow-hidden"
                 >
-                  <FaUserAlt />
-                </Button>
+                  {user.user_metadata.avatar_url ? (
+                    <img src={user.user_metadata.avatar_url} alt="" className="w-full h-full object-cover" />
+                  ):(
+                    <FaUserAlt />
+                  )}
+                </button>
               </div>
             </>
           ) : (

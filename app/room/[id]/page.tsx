@@ -46,7 +46,7 @@ const Room = () => {
   }, [searchQuery]);
 
   const connectWebSocket = () => {
-    const ws = new WebSocket(`wss://spotify-backend-r813.onrender.com/?roomCode=${roomCode}`);
+    const ws = new WebSocket(`wss://spotify-backend-r813.onrender.com/${roomCode}`);
     wsRef.current = ws;
 
     ws.onopen = () => {

@@ -8,6 +8,8 @@ import { postData } from "@/libs/helpers";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+import { FaGithub, FaEnvelope } from "react-icons/fa";
+import { FcGoogle } from "react-icons/fc";
 
 const AccountContent = () => {
   const router = useRouter();
@@ -37,7 +39,32 @@ const AccountContent = () => {
 
   return (
     <div className="mb-7 px-3 md:px-6">
-      <h2 className="text-2xl font-semibold mb-4 truncate">Hey {user?.email}</h2>
+      <h2 className="text-2xl font-semibold mb-4 truncate">Account Details</h2>
+      <div className="flex items-center gap-4 mb-4">
+        <img
+          src={user?.user_metadata.avatar_url}
+          alt="Avatar"
+          className="w-16 h-16 rounded-full"
+        />
+        <div>
+          <h3 className="text-xl font-semibold">{user?.user_metadata.full_name}</h3>
+          <p className="text-gray-500">{user?.email}</p>
+        </div>
+      </div>
+      <div className="mb-4">
+        <h3 className="text-lg font-semibold mb-2">Signed in with:</h3>
+        <div className="flex gap-2">
+          {user?.app_metadata.providers.includes("email") && (
+            <FaEnvelope className="text-blue-500" size={24} />
+          )}
+          {user?.app_metadata.providers.includes("google") && (
+            <FcGoogle className="text-red-500" size={24} />
+          )}
+          {user?.app_metadata.providers.includes("github") && (
+            <FaGithub className="text-black" size={24} />
+          )}
+        </div>
+      </div>
       {!subscription && (
         <div className="flex flex-col gap-y-4 w-full md:justify-start md:items-start justify-center items-center">
           <p>No Active plan.</p>

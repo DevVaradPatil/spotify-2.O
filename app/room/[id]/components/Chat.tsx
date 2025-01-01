@@ -18,7 +18,7 @@ const Chat: React.FC<ChatProps> = ({ roomCode, socket }) => {
   const { user } = useUser();
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState<
-    { email: string; content: string }[]
+    { email: string; content: string; full_name: string; avatar_url: string }[]
   >([]);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
@@ -35,7 +35,9 @@ const Chat: React.FC<ChatProps> = ({ roomCode, socket }) => {
       } else {
         setMessages(messages.map((message: any) => ({
           email: message.email,
-          content: message.content
+          content: message.content,
+          full_name: message.full_name,
+          avatar_url: message.avatar_url
         })));
       }
     };
@@ -44,7 +46,7 @@ const Chat: React.FC<ChatProps> = ({ roomCode, socket }) => {
   }, [roomCode]);
 
   useEffect(() => {
-      socket = new WebSocket(`wss://spotify-backend-r813.onrender.com/?roomCode=${roomCode}`);
+      socket = new WebSocket(`wss://spotify-backend-r813.onrender.com/${roomCode}`);
 
       socket.onopen = () => {
         console.log("WebSocket connection opened");
@@ -52,10 +54,10 @@ const Chat: React.FC<ChatProps> = ({ roomCode, socket }) => {
 
       socket.onmessage = async (event: MessageEvent) => {
         const data = JSON.parse(event.data);
-        const { email, content } = data;
+        const { email, content, full_name, avatar_url } = data;
 
         // Append the received message to the messages array
-        setMessages((prevMessages) => [...prevMessages, { email, content }]);
+        setMessages((prevMessages) => [...prevMessages, { email, content, full_name, avatar_url }]);
       };
 
       return () => {
@@ -76,9 +78,10 @@ const Chat: React.FC<ChatProps> = ({ roomCode, socket }) => {
       if (socket && socket.readyState === WebSocket.OPEN) {
         const trimmedMessage = message.trim();
         if (trimmedMessage && user?.email) {
+          const { full_name, avatar_url } = user.user_metadata;
           // Send the message via WebSocket
           socket.send(
-            JSON.stringify({ type: "CHAT", email: user.email, content: trimmedMessage })
+            JSON.stringify({ type: "CHAT", email: user.email, content: trimmedMessage, full_name, avatar_url })
           );
 
           // Clear the input field
@@ -112,10 +115,10 @@ const Chat: React.FC<ChatProps> = ({ roomCode, socket }) => {
                   msg.email === user?.email ? "text-right" : "text-left"
                 }`}
               >
-                {msg.email && (
-                  <>
-                    {msg.email.slice(0, 5)}
-                  </>
+                {msg.full_name && (
+                    <>
+                    {msg.full_name.split(" ")[0]}
+                    </>
                 )}
               </span>
               {msg.content}
