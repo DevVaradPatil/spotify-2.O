@@ -152,9 +152,9 @@ const Room = () => {
   }
 
   return (
-    <div className="bg-neutral-900 rounded-lg p-2 md:p-6 h-full w-full overflow-hidden  relative">
-      <div className="absolute top-2 right-2 text-white opacity-50">{roomCode}</div>
-      <div className="flex my-2 w-full overflow-hidden bg-black rounded-full justify-evenly items-center">
+    <div className="bg-neutral-900 rounded-lg p-2 flex flex-col justify-start items-center md:p-6 h-full w-full overflow-hidden relative">
+      <div className="absolute top-2 right-2 text-white opacity-50 z-50">{roomCode}</div>
+      <div className="flex fixed top-5 my-2 z-20 w-[90%] max-w-xl overflow-hidden bg-black rounded-full justify-evenly items-center">
         <button
           onClick={() => setActiveTab("songs")}
           className={`w-full py-3 flex items-center px-5 justify-center ${activeTab === "songs" ? "bg-neutral-700" : ""}`}
@@ -168,10 +168,9 @@ const Room = () => {
           Chat
         </button>
       </div>
-      <div className="flex flex-col">
+      <div className="flex flex-col pt-[8vh] w-full h-full">
         {activeTab === "songs" && (
-          <div className="flex flex-col w-full">
-            <div>
+          <div className="flex flex-col w-full px-5">
               <input
                 className="flex w-full rounded-md bg-neutral-700 border border-transparent px-3 py-3 text-sm file:border-0 file:bg-transparent file:text-sm placeholder:text-neutral-400 disabled:cursor-not-allowed disabled:opacity-50 focus:outline-none mb-10"
                 placeholder="Search for songs"
@@ -179,13 +178,10 @@ const Room = () => {
                 onChange={(e) => setSearchQuery(e.target.value)}
               />
               <SearchContent songs={songs} />
-            </div>
           </div>
         )}
         {activeTab === "chat" && (
-          <div className="flex flex-col flex-grow">
             <Chat roomCode={roomCode} socket={wsRef.current} />
-          </div>
         )}
       </div>
     </div>

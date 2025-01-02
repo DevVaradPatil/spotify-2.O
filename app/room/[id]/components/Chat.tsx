@@ -25,20 +25,22 @@ const Chat: React.FC<ChatProps> = ({ roomCode, socket }) => {
   useEffect(() => {
     const fetchMessages = async () => {
       const { data: messages, error } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('room_code', roomCode)
-        .order('created_at', { ascending: true });
+        .from("messages")
+        .select("*")
+        .eq("room_code", roomCode)
+        .order("created_at", { ascending: true });
 
       if (error) {
-        console.error('Error fetching messages:', error);
+        console.error("Error fetching messages:", error);
       } else {
-        setMessages(messages.map((message: any) => ({
-          email: message.email,
-          content: message.content,
-          full_name: message.full_name,
-          avatar_url: message.avatar_url
-        })));
+        setMessages(
+          messages.map((message: any) => ({
+            email: message.email,
+            content: message.content,
+            full_name: message.full_name,
+            avatar_url: message.avatar_url,
+          }))
+        );
       }
     };
 
@@ -46,26 +48,30 @@ const Chat: React.FC<ChatProps> = ({ roomCode, socket }) => {
   }, [roomCode]);
 
   useEffect(() => {
-      socket = new WebSocket(`wss://spotify-backend-r813.onrender.com/${roomCode}`);
+    socket = new WebSocket(
+      `wss://spotify-backend-r813.onrender.com/${roomCode}`
+    );
 
-      socket.onopen = () => {
-        console.log("WebSocket connection opened");
-      };
+    socket.onopen = () => {
+      console.log("WebSocket connection opened");
+    };
 
-      socket.onmessage = async (event: MessageEvent) => {
-        const data = JSON.parse(event.data);
-        const { email, content, full_name, avatar_url } = data;
+    socket.onmessage = async (event: MessageEvent) => {
+      const data = JSON.parse(event.data);
+      const { email, content, full_name, avatar_url } = data;
 
-        // Append the received message to the messages array
-        setMessages((prevMessages) => [...prevMessages, { email, content, full_name, avatar_url }]);
-      };
+      // Append the received message to the messages array
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { email, content, full_name, avatar_url },
+      ]);
+    };
 
-      return () => {
-        if (socket) {
-          socket.close();
-        }
-      };
-    
+    return () => {
+      if (socket) {
+        socket.close();
+      }
+    };
   }, [roomCode, socket]);
 
   useEffect(() => {
@@ -81,7 +87,13 @@ const Chat: React.FC<ChatProps> = ({ roomCode, socket }) => {
           const { full_name, avatar_url } = user.user_metadata;
           // Send the message via WebSocket
           socket.send(
-            JSON.stringify({ type: "CHAT", email: user.email, content: trimmedMessage, full_name, avatar_url })
+            JSON.stringify({
+              type: "CHAT",
+              email: user.email,
+              content: trimmedMessage,
+              full_name,
+              avatar_url,
+            })
           );
 
           // Clear the input field
@@ -98,41 +110,35 @@ const Chat: React.FC<ChatProps> = ({ roomCode, socket }) => {
   };
 
   return (
-    <div className="flex flex-col h-full justify-between overflow-y-auto">
-      <div className="overflow-y-scroll justify-end h-[75vh] flex items-end w-full">
-        <ul className="space-y-2 w-full overflow-y-scroll h-full flex flex-col">
-          {messages.map((msg, index) => (
-            <li
-              key={index}
-              className={`p-2 rounded-md max-w-[90%] break-words ${
-                msg.email === user?.email
-                  ? "bg-blue-500 text-white self-end"
-                  : "bg-neutral-800 text-white self-start text-left"
+    <div className="h-full relative flex-col overflow-y-scroll pb-12 justify-center flex items-center w-full">
+      <ul className="space-y-2 w-full overflow-y-scroll h-full flex flex-col">
+        {messages.map((msg, index) => (
+          <li
+            key={index}
+            className={`p-2 rounded-md max-w-[90%] break-words ${
+              msg.email === user?.email
+                ? "bg-blue-500 text-white self-end"
+                : "bg-neutral-800 text-white self-start text-left"
+            }`}
+          >
+            <span
+              className={`block text-xs text-gray-400 ${
+                msg.email === user?.email ? "text-right" : "text-left"
               }`}
             >
-              <span
-                className={`block text-xs text-gray-400 ${
-                  msg.email === user?.email ? "text-right" : "text-left"
-                }`}
-              >
-                {msg.full_name && (
-                    <>
-                    {msg.full_name.split(" ")[0]}
-                    </>
-                )}
-              </span>
-              {msg.content}
-            </li>
-          ))}
-          <div ref={messagesEndRef} />
-        </ul>
-      </div>
-      <div className="flex absolute left-0 bottom-0 w-full items-center p-1 px-5 mb-3">
+              {msg.full_name && <>{msg.full_name.split(" ")[0]}</>}
+            </span>
+            {msg.content}
+          </li>
+        ))}
+        <div ref={messagesEndRef} />
+      </ul>
+      <div className="flex w-full absolute bottom-0 justify-center items-center p-1 px-5">
         <Input
           type="text"
           value={message}
           onChange={(e) => setMessage(e.target.value)}
-          onKeyPress={handleKeyPress}
+          onKeyDown={handleKeyPress}
           placeholder="Type a message"
           className="flex-grow mr-2 rounded-md p-2"
         />
