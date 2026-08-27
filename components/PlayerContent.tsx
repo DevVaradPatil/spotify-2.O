@@ -9,6 +9,8 @@ import { Song } from "@/types";
 import MediaItem from "./MediaItem";
 import LikeButton from "./LikeButton";
 import { AiFillStepBackward, AiFillStepForward } from "react-icons/ai";
+import { BsShuffle, BsRepeat, BsRepeat1 } from "react-icons/bs";
+import { MdQueueMusic } from "react-icons/md";
 import { HiSpeakerWave, HiSpeakerXMark } from "react-icons/hi2";
 import Slider from "./Slider";
 import usePlayer from "@/hooks/usePlayer";
@@ -17,6 +19,8 @@ import AddToPlaylist from "./AddToPlaylist";
 interface PlayerContentProps {
   song: Song;
   songUrl: string;
+  isQueueOpen: boolean;
+  onToggleQueue: () => void;
 }
 
 function formatTime(seconds: number) {
@@ -66,16 +70,25 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
   </div>
 );
 
-const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
+const PlayerContent: React.FC<PlayerContentProps> = ({
+  song,
+  songUrl,
+  isQueueOpen,
+  onToggleQueue,
+}) => {
   // Selectors, not the whole store: a volume change should not re-render
   // anything that only cares about the active track.
-  const ids = usePlayer((state) => state.ids);
   const activeId = usePlayer((state) => state.activeId);
   const isPlaying = usePlayer((state) => state.isPlaying);
   const volume = usePlayer((state) => state.volume);
-  const setId = usePlayer((state) => state.setId);
+  const isShuffled = usePlayer((state) => state.isShuffled);
+  const repeat = usePlayer((state) => state.repeat);
   const setIsPlaying = usePlayer((state) => state.setIsPlaying);
   const setVolume = usePlayer((state) => state.setVolume);
+  const playNext = usePlayer((state) => state.playNext);
+  const playPrevious = usePlayer((state) => state.playPrevious);
+  const toggleShuffle = usePlayer((state) => state.toggleShuffle);
+  const cycleRepeat = usePlayer((state) => state.cycleRepeat);
 
   // Local, not global — these tick twice a second and nothing outside this
   // component reads them.
@@ -85,19 +98,10 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   const Icon = isPlaying ? BsPauseFill : BsPlayFill;
   const VolumeIcon = volume === 0 ? HiSpeakerXMark : HiSpeakerWave;
 
-  const onPlayNext = useCallback(() => {
-    if (ids.length === 0) return;
-    const currentIndex = ids.findIndex((id) => id === activeId);
-    const nextSong = ids[currentIndex + 1];
-    setId(nextSong ?? ids[0]);
-  }, [ids, activeId, setId]);
-
-  const onPlayPrevious = useCallback(() => {
-    if (ids.length === 0) return;
-    const currentIndex = ids.findIndex((id) => id === activeId);
-    const previousSong = ids[currentIndex - 1];
-    setId(previousSong ?? ids[ids.length - 1]);
-  }, [ids, activeId, setId]);
+  // Explicit press: advances even under repeat-one, so the user is never
+  // trapped on one track.
+  const onPlayNext = useCallback(() => playNext(true), [playNext]);
+  const onPlayPrevious = useCallback(() => playPrevious(), [playPrevious]);
 
   const [play, { pause, sound }] = useSound(songUrl, {
     volume,
@@ -107,7 +111,8 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
     onplay: () => setIsPlaying(true),
     onend: () => {
       setIsPlaying(false);
-      onPlayNext();
+      // Not explicit — repeat-one should replay this track.
+      playNext(false);
     },
     onpause: () => setIsPlaying(false),
     format: ["mp3"],
@@ -226,6 +231,21 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
           e.preventDefault();
           onPlayPrevious();
           break;
+        case "s":
+        case "S":
+          e.preventDefault();
+          toggleShuffle();
+          break;
+        case "r":
+        case "R":
+          e.preventDefault();
+          cycleRepeat();
+          break;
+        case "q":
+        case "Q":
+          e.preventDefault();
+          onToggleQueue();
+          break;
         default:
           break;
       }
@@ -233,7 +253,16 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [handlePlay, seekBy, toggleMute, onPlayNext, onPlayPrevious]);
+  }, [
+    handlePlay,
+    seekBy,
+    toggleMute,
+    onPlayNext,
+    onPlayPrevious,
+    toggleShuffle,
+    cycleRepeat,
+    onToggleQueue,
+  ]);
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 h-full">
@@ -283,6 +312,17 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
       <div className="hidden h-full md:flex gap-y-2 flex-col justify-center items-center w-full max-w-[722px] gap-x-6">
         <div className="flex justify-center items-center gap-x-6">
           <button
+            onClick={toggleShuffle}
+            aria-label="Shuffle"
+            aria-pressed={isShuffled}
+            title="Shuffle (S)"
+            className={`transition rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+              isShuffled ? "text-accent" : "text-content-muted hover:text-white"
+            }`}
+          >
+            <BsShuffle size={20} aria-hidden="true" />
+          </button>
+          <button
             onClick={onPlayPrevious}
             aria-label="Previous track"
             className="text-content-muted hover:text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-full"
@@ -300,9 +340,24 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
           <button
             onClick={onPlayNext}
             aria-label="Next track"
+            title="Next track (N)"
             className="text-content-muted hover:text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-full"
           >
             <AiFillStepForward size={30} aria-hidden="true" />
+          </button>
+          <button
+            onClick={cycleRepeat}
+            aria-label={`Repeat: ${repeat}`}
+            title={`Repeat: ${repeat} (R)`}
+            className={`transition rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+              repeat === "off" ? "text-content-muted hover:text-white" : "text-accent"
+            }`}
+          >
+            {repeat === "one" ? (
+              <BsRepeat1 size={20} aria-hidden="true" />
+            ) : (
+              <BsRepeat size={20} aria-hidden="true" />
+            )}
           </button>
         </div>
         <div className="hidden md:flex w-full justify-center items-center gap-x-3">
@@ -319,7 +374,18 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
         </div>
       </div>
 
-      <div className="hidden md:flex w-full items-center justify-end pr-2">
+      <div className="hidden md:flex w-full items-center justify-end pr-2 gap-x-1">
+        <button
+          onClick={onToggleQueue}
+          aria-label="Queue"
+          aria-pressed={isQueueOpen}
+          title="Queue (Q)"
+          className={`transition rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+            isQueueOpen ? "text-accent" : "text-content-muted hover:text-white"
+          }`}
+        >
+          <MdQueueMusic size={26} aria-hidden="true" />
+        </button>
         <AddToPlaylist songId={activeId} />
         <div className="flex items-center gap-x-2 w-[120px]">
           <button
