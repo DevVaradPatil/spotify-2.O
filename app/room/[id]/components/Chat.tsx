@@ -3,103 +3,59 @@ import { useEffect, useRef, useState } from "react";
 import Input from "@/components/Input";
 import { IoSend } from "react-icons/io5";
 import { useUser } from "@/hooks/useUser";
-import { createClient } from "@supabase/supabase-js";
+import type { RoomMessage } from "@/hooks/useRoomSocket";
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
-const supabase = createClient(supabaseUrl, supabaseKey);
-
-interface ChatProps {
-  roomCode: string;
-  socket: WebSocket | null;
+interface ChatMessage {
+  email: string;
+  content: string;
+  full_name: string | null;
+  avatar_url: string | null;
 }
 
-const Chat: React.FC<ChatProps> = ({ roomCode, socket }) => {
+interface ChatProps {
+  send: (payload: Record<string, unknown>) => boolean;
+  subscribe: (listener: (message: RoomMessage) => void) => () => void;
+}
+
+const MAX_CHAT_LENGTH = 2000;
+
+/**
+ * Chat no longer opens its own socket or its own Supabase client. It shares
+ * the authenticated room socket, and history arrives as a replay from the
+ * server on connect rather than a second direct query with the anon key.
+ */
+const Chat: React.FC<ChatProps> = ({ send, subscribe }) => {
   const { user } = useUser();
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<
-    { email: string; content: string; full_name: string; avatar_url: string }[]
-  >([]);
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    const fetchMessages = async () => {
-      const { data: messages, error } = await supabase
-        .from("messages")
-        .select("*")
-        .eq("room_code", roomCode)
-        .order("created_at", { ascending: true });
-
-      if (error) {
-        console.error("Error fetching messages:", error);
-      } else {
-        setMessages(
-          messages.map((message: any) => ({
-            email: message.email,
-            content: message.content,
-            full_name: message.full_name,
-            avatar_url: message.avatar_url,
-          }))
-        );
-      }
-    };
-
-    fetchMessages();
-  }, [roomCode]);
-
-  useEffect(() => {
-    socket = new WebSocket(
-      `wss://spotify-backend-r813.onrender.com/${roomCode}`
-    );
-
-    socket.onopen = () => {
-      console.log("WebSocket connection opened");
-    };
-
-    socket.onmessage = async (event: MessageEvent) => {
-      const data = JSON.parse(event.data);
-      const { email, content, full_name, avatar_url } = data;
-
-      // Append the received message to the messages array
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        { email, content, full_name, avatar_url },
+    return subscribe((incoming) => {
+      if (incoming.type !== "CHAT") return;
+      setMessages((prev) => [
+        ...prev,
+        {
+          email: incoming.email,
+          content: incoming.content,
+          full_name: incoming.full_name,
+          avatar_url: incoming.avatar_url,
+        },
       ]);
-    };
-
-    return () => {
-      if (socket) {
-        socket.close();
-      }
-    };
-  }, [roomCode, socket]);
+    });
+  }, [subscribe]);
 
   useEffect(() => {
-    // Scroll to the bottom whenever messages change
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
   const sendMessage = () => {
-    if (message.length > 0) {
-      if (socket && socket.readyState === WebSocket.OPEN) {
-        const trimmedMessage = message.trim();
-        if (trimmedMessage && user?.email) {
-          const { full_name, avatar_url } = user.user_metadata;
-          // Send the message via WebSocket
-          socket.send(
-            JSON.stringify({
-              type: "CHAT",
-              email: user.email,
-              content: trimmedMessage,
-              full_name,
-              avatar_url,
-            })
-          );
-
-          // Clear the input field
-          setMessage("");
-        }
-      }
+    const trimmed = message.trim();
+    if (!trimmed || trimmed.length > MAX_CHAT_LENGTH) return;
+    // The server derives identity from the verified session; we only send
+    // the content.
+    if (send({ type: "CHAT", content: trimmed })) {
+      setMessage("");
     }
   };
 
@@ -111,7 +67,11 @@ const Chat: React.FC<ChatProps> = ({ roomCode, socket }) => {
 
   return (
     <div className="h-full relative flex-col overflow-y-scroll pb-12 justify-center flex items-center w-full">
-      <ul className="space-y-2 w-full overflow-y-scroll h-full flex flex-col">
+      <ul
+        className="space-y-2 w-full overflow-y-scroll h-full flex flex-col"
+        aria-live="polite"
+        aria-label="Room chat messages"
+      >
         {messages.map((msg, index) => (
           <li
             key={index}
@@ -122,7 +82,7 @@ const Chat: React.FC<ChatProps> = ({ roomCode, socket }) => {
             }`}
           >
             <span
-              className={`block text-xs text-gray-400 ${
+              className={`block text-xs text-neutral-300 ${
                 msg.email === user?.email ? "text-right" : "text-left"
               }`}
             >
@@ -134,9 +94,14 @@ const Chat: React.FC<ChatProps> = ({ roomCode, socket }) => {
         <div ref={messagesEndRef} />
       </ul>
       <div className="flex w-full absolute bottom-0 justify-center items-center p-1 px-5">
+        <label htmlFor="room-chat-input" className="sr-only">
+          Type a message
+        </label>
         <Input
+          id="room-chat-input"
           type="text"
           value={message}
+          maxLength={MAX_CHAT_LENGTH}
           onChange={(e) => setMessage(e.target.value)}
           onKeyDown={handleKeyPress}
           placeholder="Type a message"
@@ -144,10 +109,11 @@ const Chat: React.FC<ChatProps> = ({ roomCode, socket }) => {
         />
         <button
           onClick={sendMessage}
-          className="bg-blue-500 text-white p-2 rounded-md"
+          className="bg-blue-500 text-white p-2 rounded-md disabled:opacity-50"
           disabled={message.trim().length === 0}
+          aria-label="Send message"
         >
-          <IoSend fontSize={20} />
+          <IoSend fontSize={20} aria-hidden="true" />
         </button>
       </div>
     </div>
