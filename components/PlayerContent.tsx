@@ -1,8 +1,8 @@
 "use client";
 
 import { BsPauseFill, BsPlayFill } from "react-icons/bs";
-import { useEffect } from "react";
-// @ts-ignore
+import { useCallback, useEffect, useState } from "react";
+// @ts-ignore - use-sound ships no types for its default export
 import useSound from "use-sound";
 
 import { Song } from "@/types";
@@ -19,74 +19,70 @@ interface PlayerContentProps {
   songUrl: string;
 }
 
+function formatTime(seconds: number) {
+  if (!Number.isFinite(seconds) || seconds < 0) return "00:00";
+  const minutes = Math.floor(seconds / 60);
+  const remainingSeconds = Math.floor(seconds % 60);
+  return `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(
+    2,
+    "0"
+  )}`;
+}
+
 const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
-  const player = usePlayer();
-  const Icon = player.isPlaying ? BsPauseFill : BsPlayFill;
-  const VolumeIcon = player.volume === 0 ? HiSpeakerXMark : HiSpeakerWave;
-  const currentSongId = player.activeId;
+  // Selectors, not the whole store: a volume change should not re-render
+  // anything that only cares about the active track.
+  const ids = usePlayer((state) => state.ids);
+  const activeId = usePlayer((state) => state.activeId);
+  const isPlaying = usePlayer((state) => state.isPlaying);
+  const volume = usePlayer((state) => state.volume);
+  const setId = usePlayer((state) => state.setId);
+  const setIsPlaying = usePlayer((state) => state.setIsPlaying);
+  const setVolume = usePlayer((state) => state.setVolume);
 
-  const onPlayNext = () => {
-    if (player.ids.length === 0) {
-      return;
-    }
+  // Local, not global — these tick twice a second and nothing outside this
+  // component reads them.
+  const [position, setPosition] = useState(0);
+  const [duration, setDuration] = useState(0);
 
-    const currentIndex = player.ids.findIndex((id) => id === player.activeId);
-    const nextSong = player.ids[currentIndex + 1];
+  const Icon = isPlaying ? BsPauseFill : BsPlayFill;
+  const VolumeIcon = volume === 0 ? HiSpeakerXMark : HiSpeakerWave;
 
-    if (!nextSong) {
-      return player.setId(player.ids[0]);
-    }
+  const onPlayNext = useCallback(() => {
+    if (ids.length === 0) return;
+    const currentIndex = ids.findIndex((id) => id === activeId);
+    const nextSong = ids[currentIndex + 1];
+    setId(nextSong ?? ids[0]);
+  }, [ids, activeId, setId]);
 
-    player.setId(nextSong);
-  };
-
-  const onPlayPrevious = () => {
-    if (player.ids.length === 0) {
-      return;
-    }
-
-    const currentIndex = player.ids.findIndex((id) => id === player.activeId);
-    const previousSong = player.ids[currentIndex - 1];
-
-    if (!previousSong) {
-      return player.setId(player.ids[player.ids.length - 1]);
-    }
-
-    player.setId(previousSong);
-  };
+  const onPlayPrevious = useCallback(() => {
+    if (ids.length === 0) return;
+    const currentIndex = ids.findIndex((id) => id === activeId);
+    const previousSong = ids[currentIndex - 1];
+    setId(previousSong ?? ids[ids.length - 1]);
+  }, [ids, activeId, setId]);
 
   const [play, { pause, sound }] = useSound(songUrl, {
-    volume: player.volume,
-    onplay: () => player.setIsPlaying(true),
+    volume,
+    onplay: () => setIsPlaying(true),
     onend: () => {
-      player.setIsPlaying(false);
+      setIsPlaying(false);
       onPlayNext();
     },
-    onpause: () => player.setIsPlaying(false),
+    onpause: () => setIsPlaying(false),
     format: ["mp3"],
   });
 
-  // Update sound position and duration when the sound is ready
   useEffect(() => {
-    if (sound) {
-      player.setSoundDuration(sound.duration());
-    }
+    if (sound) setDuration(sound.duration() ?? 0);
   }, [sound]);
 
-  // Periodically update sound position
   useEffect(() => {
-    const updatePosition = () => {
-      if (sound) {
-        player.setSoundPosition(sound.seek());
-      }
-    };
-
-    // Update position every 500 milliseconds (adjust the interval as needed)
-    const positionInterval = setInterval(updatePosition, 500);
-
-    return () => {
-      clearInterval(positionInterval);
-    };
+    if (!sound) return;
+    const positionInterval = setInterval(() => {
+      setPosition(sound.seek() ?? 0);
+    }, 500);
+    return () => clearInterval(positionInterval);
   }, [sound]);
 
   useEffect(() => {
@@ -97,30 +93,66 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   }, [sound]);
 
   const handlePlay = () => {
-    if (!player.isPlaying) {
+    if (!isPlaying) {
       play();
     } else {
       pause();
     }
   };
 
-  const toggleMute = () => {
-    if (player.volume === 0) {
-      player.setVolume(1);
-    } else {
-      player.setVolume(0);
-    }
+  const toggleMute = () => setVolume(volume === 0 ? 1 : 0);
+
+  const seekTo = (newPosition: number) => {
+    if (!sound || !Number.isFinite(newPosition)) return;
+    const clamped = Math.min(Math.max(newPosition, 0), duration || 0);
+    sound.seek(clamped);
+    setPosition(clamped);
   };
 
   const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (sound) {
-      const progressBar = e.currentTarget;
-      const clickX = e.clientX - progressBar.getBoundingClientRect().left;
-      const newPosition = (clickX / progressBar.clientWidth) * player.soundDuration;
-      sound.seek(newPosition);
-      player.setSoundPosition(newPosition);
+    const progressBar = e.currentTarget;
+    const clickX = e.clientX - progressBar.getBoundingClientRect().left;
+    seekTo((clickX / progressBar.clientWidth) * duration);
+  };
+
+  // Keyboard seeking, so the progress bar is not mouse-only.
+  const handleProgressKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      seekTo(position + 5);
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      seekTo(position - 5);
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      seekTo(0);
+    } else if (e.key === "End") {
+      e.preventDefault();
+      seekTo(duration);
     }
   };
+
+  const progressPercent = duration > 0 ? (position / duration) * 100 : 0;
+
+  const ProgressBar = ({ className }: { className?: string }) => (
+    <div
+      role="slider"
+      tabIndex={0}
+      aria-label="Seek"
+      aria-valuemin={0}
+      aria-valuemax={Math.floor(duration)}
+      aria-valuenow={Math.floor(position)}
+      aria-valuetext={`${formatTime(position)} of ${formatTime(duration)}`}
+      onClick={handleProgressBarClick}
+      onKeyDown={handleProgressKeyDown}
+      className={`bg-neutral-300 h-1 rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 ${className ?? ""}`}
+    >
+      <div
+        className="bg-green-500 h-1 rounded-lg"
+        style={{ width: `${progressPercent}%` }}
+      />
+    </div>
+  );
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 h-full">
@@ -130,90 +162,88 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
           <LikeButton songId={song.id} />
         </div>
       </div>
-      <div className="flex md:hidden col-auto w-full justify-end items-center">
-      <AddToPlaylist songId={currentSongId}/>
-        <div
-          onClick={handlePlay}
-          className="h-10 w-10 ml-1 flex items-center justify-center rounded-full bg-white p-1 cursor-pointer"
+
+      {/* Mobile controls */}
+      <div className="flex md:hidden col-auto w-full justify-end items-center gap-x-1">
+        <AddToPlaylist songId={activeId} />
+        <button
+          onClick={onPlayPrevious}
+          aria-label="Previous track"
+          className="text-neutral-300 hover:text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 rounded-full"
         >
-          <Icon size={30} className="text-black" />
-        </div>
+          <AiFillStepBackward size={26} aria-hidden="true" />
+        </button>
+        <button
+          onClick={handlePlay}
+          aria-label={isPlaying ? "Pause" : "Play"}
+          className="h-10 w-10 flex items-center justify-center rounded-full bg-white p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+        >
+          <Icon size={30} className="text-black" aria-hidden="true" />
+        </button>
+        <button
+          onClick={onPlayNext}
+          aria-label="Next track"
+          className="text-neutral-300 hover:text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 rounded-full"
+        >
+          <AiFillStepForward size={26} aria-hidden="true" />
+        </button>
       </div>
 
+      {/* Desktop transport */}
       <div className="hidden h-full md:flex gap-y-2 flex-col justify-center items-center w-full max-w-[722px] gap-x-6">
         <div className="flex justify-center items-center gap-x-6">
-          <AiFillStepBackward
+          <button
             onClick={onPlayPrevious}
-            size={30}
-            className="text-neutral-400 cursor-pointer hover:text-white transition"
-          />
-          <div
-            onClick={handlePlay}
-            className="flex items-center justify-center h-10 w-10 rounded-full bg-white p-1 cursor-pointer"
+            aria-label="Previous track"
+            className="text-neutral-400 hover:text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 rounded-full"
           >
-            <Icon size={30} className="text-black" />
-          </div>
-          <AiFillStepForward
+            <AiFillStepBackward size={30} aria-hidden="true" />
+          </button>
+          <button
+            onClick={handlePlay}
+            aria-label={isPlaying ? "Pause" : "Play"}
+            className="flex items-center justify-center h-10 w-10 rounded-full bg-white p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+          >
+            <Icon size={30} className="text-black" aria-hidden="true" />
+          </button>
+          <button
             onClick={onPlayNext}
-            size={30}
-            className="text-neutral-400 cursor-pointer hover:text-white transition"
-          />
+            aria-label="Next track"
+            className="text-neutral-400 hover:text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 rounded-full"
+          >
+            <AiFillStepForward size={30} aria-hidden="true" />
+          </button>
         </div>
         <div className="hidden md:flex w-full justify-center items-center gap-x-3">
-          <p className="text-sm text-neutral-400 w-10">
-            {formatTime(player.soundPosition)}
-          </p>
+          <p className="text-sm text-neutral-300 w-10">{formatTime(position)}</p>
           <div className="w-full">
-            <div
-              className="bg-neutral-300 h-1 rounded-lg cursor-pointer"
-              onClick={handleProgressBarClick}
-            >
-              <div
-                className="bg-green-500 h-1 rounded-lg"
-                style={{ width: `${(player.soundPosition / player.soundDuration) * 100}%` }}
-              ></div>
-            </div>
+            <ProgressBar />
           </div>
-          <p className="text-sm text-neutral-400 w-10">
-            {formatTime(player.soundDuration)}
-          </p>
+          <p className="text-sm text-neutral-300 w-10">{formatTime(duration)}</p>
         </div>
       </div>
 
       <div className="hidden md:flex w-full items-center justify-end pr-2">
-        <AddToPlaylist songId={currentSongId}/>
+        <AddToPlaylist songId={activeId} />
         <div className="flex items-center gap-x-2 w-[120px]">
-          <VolumeIcon
+          <button
             onClick={toggleMute}
-            className=" cursor-pointer"
-            size={34}
-          />
-          <Slider value={player.volume} onChange={(value) => player.setVolume(value)} />
+            aria-label={volume === 0 ? "Unmute" : "Mute"}
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 rounded-full"
+          >
+            <VolumeIcon className="cursor-pointer" size={34} aria-hidden="true" />
+          </button>
+          <Slider value={volume} onChange={(value) => setVolume(value)} />
         </div>
       </div>
+
       <div className="flex md:hidden w-full justify-center items-center absolute bottom-0 left-0">
         <div className="w-full">
-          <div
-            className="bg-neutral-300 h-1 rounded-lg"
-            onClick={handleProgressBarClick}
-          >
-            <div
-              className="bg-green-500 h-1 rounded-lg"
-              style={{ width: `${(player.soundPosition / player.soundDuration) * 100}%` }}
-            ></div>
-          </div>
+          <ProgressBar />
         </div>
       </div>
     </div>
   );
 };
-
-function formatTime(seconds: number) {
-  const minutes = Math.floor(seconds / 60);
-  const remainingSeconds = Math.floor(seconds % 60);
-  return `${String(minutes).padStart(2, "0")}:${String(
-    remainingSeconds
-  ).padStart(2, "0")}`;
-}
 
 export default PlayerContent;

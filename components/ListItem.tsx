@@ -15,7 +15,7 @@ interface ListItemProps {
   index: number;
 }
 
-const ListItem: React.FC<ListItemProps> = ({ image, name, href,index }) => {
+const ListItem: React.FC<ListItemProps> = ({ image, name, href, index }) => {
   const router = useRouter();
   const { user } = useUser();
   const authModal = useAuthModal();
@@ -29,9 +29,9 @@ const ListItem: React.FC<ListItemProps> = ({ image, name, href,index }) => {
   };
   return (
     <motion.button
-    initial="hidden"
-    animate="show"
-    variants={slideIn( "up", " ", index*0.25 , 0.25)}
+      initial="hidden"
+      animate="show"
+      variants={slideIn("up", " ", Math.min(index, 8) * 0.05, 0.25)}
       onClick={onClick}
       className="relative group flex items-center rounded-md overflow-hidden gap-x-4 bg-neutral-100/10 hover:bg-neutral-100/20 transition pr-4"
     >

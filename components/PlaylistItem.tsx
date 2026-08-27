@@ -5,22 +5,20 @@ import { Playlist } from "@/types";
 import Image from "next/image";
 import PlayButton from "./PlayButton";
 import { motion } from "framer-motion";
-import { zoomIn } from '@/variants'
-
+import { zoomIn } from "@/variants";
 
 interface PlaylistItemProps {
   data: Playlist;
   index: number;
 }
 
-
 const PlaylistItem: React.FC<PlaylistItemProps> = ({ data, index }) => {
   const imagePath = useLoadImage(data);
   return (
     <motion.div
-    initial="hidden"
-    animate="show"
-    variants={zoomIn( index*0.25 , 0.25)}
+      initial="hidden"
+      animate="show"
+      variants={zoomIn(Math.min(index, 8) * 0.05, 0.25)}
       className="
       relative 
       group 
@@ -50,7 +48,7 @@ const PlaylistItem: React.FC<PlaylistItemProps> = ({ data, index }) => {
       >
         <Image
           className="object-cover"
-          src={imagePath || "/images/music-placeholder.png"}
+          src={imagePath || "/images/music.png"}
           fill
           alt="Image"
         />
@@ -70,7 +68,7 @@ const PlaylistItem: React.FC<PlaylistItemProps> = ({ data, index }) => {
         </p>
       </div>
       <div className="absolute bottom-24 right-5">
-        <PlayButton/>
+        <PlayButton />
       </div>
     </motion.div>
   );

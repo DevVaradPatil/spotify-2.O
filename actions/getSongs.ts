@@ -2,17 +2,23 @@ import { Song } from "@/types";
 import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 
-const getSongs = async(): Promise<Song[]> => {
-    const supabase = createServerComponentClient({
-        cookies: cookies
-    })
+const DEFAULT_LIMIT = 60;
 
-    const { data, error } = await supabase.from('songs').select('*').order('created_at', {ascending: false});
-    if(error) {
-        console.log(error);
-    }
+const getSongs = async (limit: number = DEFAULT_LIMIT): Promise<Song[]> => {
+  const supabase = createServerComponentClient({
+    cookies: cookies,
+  });
 
-    return (data as any ) || [];
+  const { data, error } = await supabase
+    .from("songs")
+    .select("*")
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (error) {
+    console.log(error);
+  }
+
+  return (data as any) || [];
 };
 
 export default getSongs;

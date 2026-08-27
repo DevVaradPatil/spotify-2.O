@@ -6,12 +6,12 @@ import usePlayer from "@/hooks/usePlayer";
 import PlayerContent from "./PlayerContent";
 
 const Player = () => {
-  const player = usePlayer();
-  const { song } = useGetSongById(player.activeId);
+  const activeId = usePlayer((state) => state.activeId);
+  const { song } = useGetSongById(activeId);
 
   const songUrl = useLoadSongUrl(song!);
 
-  if (!song || !songUrl || !player.activeId) {
+  if (!song || !songUrl || !activeId) {
     return null;
   }
   return (

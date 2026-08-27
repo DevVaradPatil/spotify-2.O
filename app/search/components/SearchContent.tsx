@@ -22,11 +22,11 @@ const SearchContent: React.FC<SearchContentProps> = ({ songs }) => {
   }
   return (
     <div className="flex flex-col gap-y-2 w-full px-6">
-      {songs.slice(0, 6).map((song, index) => (
+      {songs.map((song, index) => (
         <motion.div
-        initial="hidden"
-        animate="show"
-        variants={slideIn("up", "", index * 0.25, 0.25)}
+          initial="hidden"
+          animate="show"
+          variants={slideIn("up", "", Math.min(index, 8) * 0.05, 0.25)}
           key={song.id}
           className="flex items-center gap-x-4 w-full"
         >
