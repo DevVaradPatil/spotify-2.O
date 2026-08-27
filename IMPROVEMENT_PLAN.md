@@ -384,17 +384,19 @@ These are not phase-one items. They are today items.
 
 ## 4. Prioritized Roadmap
 
-### Phase 0 — Emergency (today, ~2 hours)
+### Phase 0 — Emergency (today, ~2 hours) — ⏳ IN PROGRESS
 
 > Nothing else starts until this is done.
 
-| Item | Effort |
-| --- | --- |
-| Rotate Supabase service-role + anon keys, Stripe secret + webhook secret (SEC-1) | S |
-| `git rm --cached .env`, gitignore it, add `.env.example` (SEC-1) | S |
-| `npm i next@13.5.11` — close the middleware auth bypass (SEC-2) | S |
-| `npm uninstall react-router-dom socket.io-client` (SEC-9) | S |
-| Decide on git history rewrite (§6 Q1) | S |
+Executed on branch `phase-0-security` (3 commits, not pushed):
+
+| Item | Effort | Status |
+| --- | --- | --- |
+| Rotate Supabase service-role + anon keys, Stripe secret + webhook secret (SEC-1) | S | 🔴 **BLOCKED — requires you.** Dashboard access; cannot be automated. **This is the only step that revokes access.** |
+| `git rm --cached .env`, gitignore it, add `.env.example` (SEC-1) | S | ✅ Done — `d3ac0ac` |
+| `npm i next@13.5.11` — close the middleware auth bypass (SEC-2) | S | ✅ Done — `dceb2a7`. CVE-2025-29927 confirmed cleared; typecheck + build pass |
+| `npm uninstall react-router-dom socket.io-client` (SEC-9) | S | ✅ Done — `dceb2a7`. audit 25 → 20, critical 2 → 1 |
+| Decide on git history rewrite (§6 Q1) | S | ⚠️ **Your decision.** Repo confirmed **PUBLIC**, exposed **604 days** — see §6 Q1 |
 
 ### Phase 1 — Critical Security & Data Integrity (week 1–2)
 
@@ -489,7 +491,9 @@ These are not phase-one items. They are today items.
 
 ## 6. Open Questions
 
-1. **Git history — rewrite or rotate-only?** Rotating the keys neutralizes the exposure. Rewriting history with `git filter-repo` also scrubs the secrets from every commit but changes all SHAs and breaks existing clones. **Is this repository public or private, and has it ever been public?** That answer decides it.
+1. ~~**Git history — rewrite or rotate-only?**~~ **ANSWERED during Phase 0 — and it is worse than assumed.** `github.com/DevVaradPatil/spotify-2.O` is **PUBLIC**, and `.env` has been live on the public default branch for **604 days** (committed `18efdaf`, 2024-12-31). The credentials must be treated as **already harvested**, not merely at risk — public-repo secret scrapers index new commits within minutes.
+   - **Rotation is mandatory and urgent.** It is the only action that actually revokes access.
+   - **History rewrite is now cleanup, not remedy.** GitHub retains unreferenced commits, forks keep full copies, and 604 days of scraping cannot be undone. Rewrite only after rotation, and only if you also want the secrets gone from the visible history. **Still your call — see the decision in §4 Phase 0.**
 
 2. **Can you export the live RLS policies?** This is the single biggest gap in the audit — no policies exist in the repo, so I inferred them from query behaviour and did not guess at definitions. Please run this in the Supabase SQL editor and share the output:
 
@@ -509,7 +513,7 @@ These are not phase-one items. They are today items.
 
 5. **Music rooms: rebuild on Supabase Realtime, or harden the standalone `ws` server?** Realtime removes an entire deployment target, gives you auth and presence for free, and deletes three dead files — but it's a rewrite of the feature. The WS server can be fixed in place for less work but keeps a separate always-on host (currently Render) that isn't wired to any env var. **My recommendation: Supabase Realtime.**
 
-6. **How far do you want to go on Next.js?** Options: (a) stay on 13.5.11 patched, (b) move to 14.x, (c) move to 15.x + React 19. **My recommendation: (c)** — 13.x is EOL and won't receive future security patches, so staying costs more over time than upgrading once.
+6. **How far do you want to go on Next.js?** *(Corrected during Phase 0: the current major is **16.x**, not 15.x as originally written. `npm audit` names `next@16.3.3` as the only full fix.)* Options: (a) stay on 13.5.11 patched, (b) move to 15.x, (c) move to 16.x + React 19. **My recommendation: (c)** — 13.x is EOL, and **29 high-severity advisories remain open at 13.5.11** (SSRF in Server Actions, cache poisoning, XSS via CSP nonces, request smuggling in rewrites). Only the critical middleware bypass was closed by the patch. Staying costs more over time than upgrading once.
 
 7. **Uploads: who can upload, and what are the limits?** Any authenticated user today, with no size cap, no duration cap, and no moderation. What should max file size be, and does user-uploaded audio need any review before it's publicly playable?
 
