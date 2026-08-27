@@ -419,23 +419,27 @@ Commits `c12e48d` · `bf6ac9f` · `668e1f4` · `572ad0a` · `8b27f1b` on `phase-
 | Regenerate `types_db.ts` as UTF-8 (DB-4)                                | S      | ⬜ Blocked on DB-2 output / `supabase gen types`                                                                           |
 | Add all missing indexes (DB-7)                                          | S      | ◐ Written, **not applied** — `20260827000002`                                                                              |
 
-### Phase 2 — Stability, Correctness & Performance (week 2–4)
+### Phase 2 — Stability, Correctness & Performance (week 2–4) — ⏳ IN PROGRESS
 
-| Item                                                                       | Effort |
-| -------------------------------------------------------------------------- | ------ |
-| Fix the id type mismatch (DB-5)                                            | M      |
-| Fix crashing/buggy features — FEAT-1 through FEAT-5, DB-15                 | S each |
-| Migrate to `@supabase/ssr` (DB-9)                                          | L      |
-| Upgrade Next.js 15 + React 19 (CQ-12)                                      | L      |
-| Server-side pagination everywhere (PERF-1)                                 | L      |
-| Zustand selectors; move playback position out of the global store (PERF-2) | M      |
-| Fix the `LikeButton` N+1 (PERF-3)                                          | M      |
-| Real caching strategy (PERF-4)                                             | M      |
-| `NOT NULL` constraints + backfill (DB-6)                                   | S      |
-| Delete all dead code (CQ-1)                                                | S      |
-| Remove `as any` / `@ts-ignore` (CQ-2, DB-10)                               | M      |
-| Prettier + a11y lint + CI (CQ-5, CQ-10, CQ-11)                             | M      |
-| Test foundation — Vitest + first suites (CQ-9)                             | L      |
+Commits `adac2b6` · `d592df4` · `b460600` · `fcea9e8` · `5b84a25`.
+
+| Item                                                                   | Effort | Status                                                                                            |
+| ---------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------- |
+| **Remove the Render host — rooms on Supabase Realtime (DB-11, DB-13)** | L      | ✅ `adac2b6` — pulled forward from Phase 4                                                        |
+| Fix crashing/buggy features — FEAT-1, 4, 5, UX-7, UX-9                 | S each | ✅ `b460600` (DB-15 landed in Phase 1)                                                            |
+| `NOT NULL` constraints (DB-6)                                          | S      | ◐ Written `20260827000004`, **not applied**. Null audit confirmed zero backfill needed            |
+| Server-side query limits (PERF-1)                                      | L      | ◐ `d592df4` — limits added, search uncapped. True cursor pagination / infinite scroll still to do |
+| Zustand selectors; playback position out of the global store (PERF-2)  | M      | ✅ `d592df4`                                                                                      |
+| Fix the `LikeButton` N+1 (PERF-3)                                      | M      | ✅ `d592df4`                                                                                      |
+| Prettier + a11y lint + CI + pinned runtime (CQ-5, CQ-10, CQ-11)        | M      | ✅ `fcea9e8`                                                                                      |
+| Delete dead code (CQ-1)                                                | S      | ◐ 6 files removed; `getPlaylistsByTitle` and `getPlaylistSongs` still unused                      |
+| Remaining `npm audit` fixes (SEC-10)                                   | M      | ◐ `5b84a25` — runtime advisories 7 → 2, no criticals. Last 2 need CQ-12                           |
+| Fix the id type mismatch (DB-5)                                        | M      | ⬜ **Not started**                                                                                |
+| Migrate to `@supabase/ssr` (DB-9)                                      | L      | ⬜ **Not started** — logs every user out on deploy                                                |
+| Upgrade Next.js 16 + React 19 (CQ-12)                                  | L      | ⬜ **Not started** — blocks the last 2 advisories                                                 |
+| Real caching strategy (PERF-4)                                         | M      | ⬜ Not started                                                                                    |
+| Remove `as any` / `@ts-ignore` (CQ-2, DB-10)                           | M      | ⬜ Not started — 4 actions, 4 in `supabaseAdmin`, 1 in `PlayerContent`. Blocked on DB-4           |
+| Test foundation — Vitest + first suites (CQ-9)                         | L      | ⬜ Not started                                                                                    |
 
 ### Phase 3 — UX & Accessibility (week 4–5)
 
@@ -514,7 +518,7 @@ Commits `c12e48d` · `bf6ac9f` · `668e1f4` · `572ad0a` · `8b27f1b` on `phase-
 
 4. **Should premium gating be real?** The subscription check in `useOnPlay` is commented out, so playback is free while uploads are still gated. Three options: (a) drop Stripe entirely and make everything free, (b) restore gating on uploads only, (c) restore full gating on playback. This decides whether Stripe stays in the stack at all.
 
-5. **Music rooms: rebuild on Supabase Realtime, or harden the standalone `ws` server?** Realtime removes an entire deployment target, gives you auth and presence for free, and deletes three dead files — but it's a rewrite of the feature. The WS server can be fixed in place for less work but keeps a separate always-on host (currently Render) that isn't wired to any env var. **My recommendation: Supabase Realtime.**
+5. ~~**Music rooms: rebuild on Supabase Realtime, or harden the standalone `ws` server?**~~ **DECIDED — Realtime, done in `adac2b6`.** `server.js` and the Render host are gone. Vercel cannot host a long-lived socket process on any runtime, so this was the only way to keep the feature on a single free host. No functionality was lost; presence (a live listener count) came free.
 
 6. **How far do you want to go on Next.js?** _(Corrected during Phase 0: the current major is **16.x**, not 15.x as originally written. `npm audit` names `next@16.3.3` as the only full fix.)_ Options: (a) stay on 13.5.11 patched, (b) move to 15.x, (c) move to 16.x + React 19. **My recommendation: (c)** — 13.x is EOL, and **29 high-severity advisories remain open at 13.5.11** (SSRF in Server Actions, cache poisoning, XSS via CSP nonces, request smuggling in rewrites). Only the critical middleware bypass was closed by the patch. Staying costs more over time than upgrading once.
 
