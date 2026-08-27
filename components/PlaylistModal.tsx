@@ -38,7 +38,7 @@ const PlaylistModal = () => {
   const onSubmit: SubmitHandler<FieldValues> = async (values) => {
     try {
       setIsLoading(true);
-  
+
       if (!user) {
         setIsLoading(false);
         return toast.error("You must be signed in to create a playlist.");
@@ -60,19 +60,16 @@ const PlaylistModal = () => {
         return toast.error(imageProblem);
       }
 
-      const {
-        data: imageData,
-        error: imageError,
-      } = await supabaseClient.storage
-        .from('images')
+      const { data: imageData, error: imageError } = await supabaseClient.storage
+        .from("images")
         // Previously interpolated `values.title`, a field this form does not
         // have, so every cover was uploaded as `image-undefined-<id>`.
         .upload(buildObjectKey(user.id, fields.data.name, imageFile!), imageFile!, {
-          cacheControl: '3600',
-          upsert: false
+          cacheControl: "3600",
+          upsert: false,
         });
 
-      if(imageError){
+      if (imageError) {
         setIsLoading(false);
         return toast.error("Failed image upload!");
       }
@@ -83,7 +80,7 @@ const PlaylistModal = () => {
         song_ids: [],
         name: fields.data.name,
         desc: fields.data.desc,
-        image_path: imageData.path
+        image_path: imageData.path,
       });
 
       // This error was previously destructured and then never checked, so a
@@ -104,7 +101,7 @@ const PlaylistModal = () => {
       setIsLoading(false);
     }
   };
-  
+
   return (
     <Modal
       title="Create a Playlist"
@@ -125,7 +122,7 @@ const PlaylistModal = () => {
           {...register("desc", { required: true })}
           placeholder="Playlist description"
         />
-         <div>
+        <div>
           <div className="pb-1">Select an image</div>
           <Input
             id="image"

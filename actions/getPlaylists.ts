@@ -24,13 +24,13 @@ const getPlaylists = async (): Promise<Playlist[]> => {
   }
 
   const { data, error } = await supabase
-    .from('playlists')
-    .select('*')
-    .eq('user_id', session.user.id)
-    .order('created_at', { ascending: false });
+    .from("playlists")
+    .select("*")
+    .eq("user_id", session.user.id)
+    .order("created_at", { ascending: false });
 
   if (error) {
-    console.error('[getPlaylists]', error.message);
+    console.error("[getPlaylists]", error.message);
     return [];
   }
 

@@ -7,7 +7,9 @@ const useLoadImage = (entityWithImage: { image_path: string } | null) => {
     return null;
   }
 
-  const { data: imageData } = supabaseClient.storage.from('images').getPublicUrl(entityWithImage.image_path);
+  const { data: imageData } = supabaseClient.storage
+    .from("images")
+    .getPublicUrl(entityWithImage.image_path);
 
   return imageData ? imageData.publicUrl : null;
 };

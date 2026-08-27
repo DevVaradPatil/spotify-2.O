@@ -14,20 +14,20 @@ const getLikedSongs = async (): Promise<Song[]> => {
   const { data, error } = await supabase
     .from("liked_songs")
     .select("*, songs(*)")
-    .eq('user_id', session?.user?.id)
+    .eq("user_id", session?.user?.id)
     .order("created_at", { ascending: false });
   if (error) {
     console.log(error);
     return [];
   }
 
-  if(!data){
+  if (!data) {
     return [];
   }
 
-  return data.map((item)=>({
-    ...item.songs
-  }))
+  return data.map((item) => ({
+    ...item.songs,
+  }));
 };
 
 export default getLikedSongs;

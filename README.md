@@ -27,17 +27,17 @@ Spotify 2.O is a full-stack music streaming application built with Next.js. User
 
 ## Routes
 
-| Route | Purpose |
-| --- | --- |
-| `/` | Home page with recent songs, playlists, and shortcuts |
-| `/all` | Browse all songs and sort by title or creation date |
-| `/search?title=...` | Search songs by title |
-| `/liked` | View liked songs |
-| `/library` | View songs uploaded by the current user |
-| `/playlist/[id]` | View and play a playlist |
-| `/account` | View profile, providers, subscription status, checkout, and billing portal |
-| `/music-room` | Create or enter a music-room code |
-| `/room/[id]` | Use synchronized playback and chat in a room |
+| Route               | Purpose                                                                    |
+| ------------------- | -------------------------------------------------------------------------- |
+| `/`                 | Home page with recent songs, playlists, and shortcuts                      |
+| `/all`              | Browse all songs and sort by title or creation date                        |
+| `/search?title=...` | Search songs by title                                                      |
+| `/liked`            | View liked songs                                                           |
+| `/library`          | View songs uploaded by the current user                                    |
+| `/playlist/[id]`    | View and play a playlist                                                   |
+| `/account`          | View profile, providers, subscription status, checkout, and billing portal |
+| `/music-room`       | Create or enter a music-room code                                          |
+| `/room/[id]`        | Use synchronized playback and chat in a room                               |
 
 The application also exposes these server endpoints:
 
@@ -172,12 +172,12 @@ Playback state is managed with Zustand in [`hooks/usePlayer.ts`](hooks/usePlayer
 
 ## NPM Scripts
 
-| Command | Description |
-| --- | --- |
-| `npm run dev` | Start the Next.js development server |
-| `npm run build` | Create a production build |
-| `npm start` | Start the production Next.js server |
-| `npm run lint` | Run Next.js linting |
+| Command            | Description                                                                       |
+| ------------------ | --------------------------------------------------------------------------------- |
+| `npm run dev`      | Start the Next.js development server                                              |
+| `npm run build`    | Create a production build                                                         |
+| `npm start`        | Start the production Next.js server                                               |
+| `npm run lint`     | Run Next.js linting                                                               |
 | `npm run start:ws` | Intended to start the WebSocket service; currently references missing `server.ts` |
 
 ## Deployment Checklist

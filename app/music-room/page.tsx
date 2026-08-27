@@ -3,7 +3,7 @@ import { useState } from "react";
 import useAuthModal from "@/hooks/useAuthModel";
 import { useUser } from "@/hooks/useUser";
 import { useRouter } from "next/navigation";
-import { IoIosRocket} from "react-icons/io";
+import { IoIosRocket } from "react-icons/io";
 import { FaDice } from "react-icons/fa6";
 
 const MusicRoom = () => {
@@ -40,9 +40,7 @@ const MusicRoom = () => {
   return (
     <div className="flex flex-col bg-neutral-900 items-center justify-center h-full rounded-lg p-6">
       <div className="flex flex-col justify-center items-center w-full max-w-2xl">
-        <h1 className="text-3xl font-extrabold text-white mb-6">
-          Enter Room Code
-        </h1>
+        <h1 className="text-3xl font-extrabold text-white mb-6">Enter Room Code</h1>
         <input
           type="text"
           value={roomCode}

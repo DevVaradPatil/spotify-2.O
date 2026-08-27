@@ -22,18 +22,18 @@ Performance has one dominant flaw: the entire song table is fetched on every pag
 
 ### 2.1 Stack & Tooling (Step 1)
 
-| Item | Current | Notes |
-| --- | --- | --- |
-| Framework | **Next.js 13.5.4**, App Router | 3 majors behind (15.x current). Critical CVEs. |
-| React | 18.2.0 | 19.x current |
-| TypeScript | 5.2.2, `strict: true` | Strictness widely bypassed with `as any` |
-| Styling | Tailwind 3.3.3 + 2 global CSS files | Consistent; no design tokens |
-| State | Zustand 4.4.3 (5 stores) + React Context | No server-state library; no Zustand selectors |
-| Node | v22.15.0 local | **No `engines` field, no `.nvmrc`** |
-| Deploy | Vercel (`spotify-2-o.vercel.app`) | No `vercel.json`; WS server has no host |
-| Lint | `next/core-web-vitals` only | No Prettier, no import rules, no a11y plugin |
-| Tests | **None** | 0% coverage. No runner installed. |
-| CI/CD | **None** | No `.github/`, no hooks, no pre-commit |
+| Item       | Current                                  | Notes                                          |
+| ---------- | ---------------------------------------- | ---------------------------------------------- |
+| Framework  | **Next.js 13.5.4**, App Router           | 3 majors behind (15.x current). Critical CVEs. |
+| React      | 18.2.0                                   | 19.x current                                   |
+| TypeScript | 5.2.2, `strict: true`                    | Strictness widely bypassed with `as any`       |
+| Styling    | Tailwind 3.3.3 + 2 global CSS files      | Consistent; no design tokens                   |
+| State      | Zustand 4.4.3 (5 stores) + React Context | No server-state library; no Zustand selectors  |
+| Node       | v22.15.0 local                           | **No `engines` field, no `.nvmrc`**            |
+| Deploy     | Vercel (`spotify-2-o.vercel.app`)        | No `vercel.json`; WS server has no host        |
+| Lint       | `next/core-web-vitals` only              | No Prettier, no import rules, no a11y plugin   |
+| Tests      | **None**                                 | 0% coverage. No runner installed.              |
+| CI/CD      | **None**                                 | No `.github/`, no hooks, no pre-commit         |
 
 **Architecture:** `app/` (routes + API) · `actions/` (server data access) · `components/` (shared UI) · `hooks/` · `libs/` (Stripe/Supabase admin) · `providers/` · `middleware.ts` · `server.js` (standalone WS). Path alias `@/*` → repo root.
 
@@ -41,24 +41,24 @@ Performance has one dominant flaw: the entire song table is fetched on every pag
 
 **Dependency risk — `npm audit`: 25 vulnerabilities (2 critical, 15 high, 7 moderate, 1 low)**
 
-| Package | Version | Status |
-| --- | --- | --- |
-| `next` | 13.5.4 | **CRITICAL** — ~30 advisories incl. middleware auth bypass [GHSA-f82v-jwr5-mffw](https://github.com/advisories/GHSA-f82v-jwr5-mffw) (CVE-2025-29927), cache poisoning, SSRF. Patch `13.5.11` available (non-major); 13.x is EOL. |
-| `@supabase/auth-helpers-nextjs` | 0.8.1 | **DEPRECATED** by Supabase → replaced by `@supabase/ssr` |
-| `@supabase/auth-helpers-react` | 0.4.2 | **DEPRECATED** → same |
-| `tar` (via `supabase` CLI 1.100.1) | — | **CRITICAL** — 13 advisories (path traversal, arbitrary file write) |
-| `react-router-dom` | 6.17.0 | HIGH (XSS via open redirect) — **and completely unused** |
-| `socket.io-client` | 4.8.1 | HIGH (`socket.io-parser` memory exhaustion) — **and completely unused** |
-| `ws` | 8.18.0 | HIGH — uninitialized memory disclosure, DoS |
-| `stripe` | 13.9.0 | ~6 majors behind (19.x); API pinned to `2023-08-16` |
-| `@stripe/stripe-js` | 2.1.7 | ~5 majors behind (7.x) |
-| `use-sound` | 4.0.1 | Effectively unmaintained; requires `@ts-ignore` to import |
-| `uniqid` | 5.4.0 | Abandoned; `crypto.randomUUID()` is built in |
-| `tailwindcss` | 3.3.3 | v4 available |
+| Package                            | Version | Status                                                                                                                                                                                                                           |
+| ---------------------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `next`                             | 13.5.4  | **CRITICAL** — ~30 advisories incl. middleware auth bypass [GHSA-f82v-jwr5-mffw](https://github.com/advisories/GHSA-f82v-jwr5-mffw) (CVE-2025-29927), cache poisoning, SSRF. Patch `13.5.11` available (non-major); 13.x is EOL. |
+| `@supabase/auth-helpers-nextjs`    | 0.8.1   | **DEPRECATED** by Supabase → replaced by `@supabase/ssr`                                                                                                                                                                         |
+| `@supabase/auth-helpers-react`     | 0.4.2   | **DEPRECATED** → same                                                                                                                                                                                                            |
+| `tar` (via `supabase` CLI 1.100.1) | —       | **CRITICAL** — 13 advisories (path traversal, arbitrary file write)                                                                                                                                                              |
+| `react-router-dom`                 | 6.17.0  | HIGH (XSS via open redirect) — **and completely unused**                                                                                                                                                                         |
+| `socket.io-client`                 | 4.8.1   | HIGH (`socket.io-parser` memory exhaustion) — **and completely unused**                                                                                                                                                          |
+| `ws`                               | 8.18.0  | HIGH — uninitialized memory disclosure, DoS                                                                                                                                                                                      |
+| `stripe`                           | 13.9.0  | ~6 majors behind (19.x); API pinned to `2023-08-16`                                                                                                                                                                              |
+| `@stripe/stripe-js`                | 2.1.7   | ~5 majors behind (7.x)                                                                                                                                                                                                           |
+| `use-sound`                        | 4.0.1   | Effectively unmaintained; requires `@ts-ignore` to import                                                                                                                                                                        |
+| `uniqid`                           | 5.4.0   | Abandoned; `crypto.randomUUID()` is built in                                                                                                                                                                                     |
+| `tailwindcss`                      | 3.3.3   | v4 available                                                                                                                                                                                                                     |
 
 ### 2.2 Database & Supabase (Step 2)
 
-> **Scope limitation, stated plainly:** this repository contains **no migrations, no `supabase/` directory, no `config.toml`, and no SQL files**. The live database was not queried. Everything below is reconstructed from `types_db.ts` and from how the code actually uses the client. **RLS policies, triggers, and indexes cannot be verified from the repo** — I have flagged what the code *implies* about them and listed verification as the first open question (§6). I have not invented policy definitions.
+> **Scope limitation, stated plainly:** this repository contains **no migrations, no `supabase/` directory, no `config.toml`, and no SQL files**. The live database was not queried. Everything below is reconstructed from `types_db.ts` and from how the code actually uses the client. **RLS policies, triggers, and indexes cannot be verified from the repo** — I have flagged what the code _implies_ about them and listed verification as the first open question (§6). I have not invented policy definitions.
 
 **Two problems with the type definitions themselves:**
 
@@ -115,14 +115,14 @@ auth.users (Supabase managed)
 
 #### RLS — what the code implies
 
-| Table | Evidence | Implication |
-| --- | --- | --- |
-| `playlists` | `actions/getPlaylists.ts` selects **all playlists with no `user_id` filter**; `PlaylistContent.tsx` then filters by owner **in the browser** | SELECT policy is almost certainly permissive. Every user's playlist names, descriptions, image paths, and `user_id`s are shipped to every visitor. |
-| `playlists` | `app/playlist/[id]/page.tsx` fetches any playlist by id client-side, *then* redirects if `user_id !== user.id` | Ownership check happens **after** the data is already in the browser. Not a security boundary. |
-| `messages` | `Chat.tsx` reads with the **anon key**, filtered only by `room_code` | Any anonymous client with a room code reads that room's entire chat history. |
-| `messages` | `server.js` writes with the **service role key** | All chat writes bypass RLS entirely. |
-| `songs` | Global read is intended | Fine by design. |
-| `liked_songs`, `subscriptions`, `customers`, `users` | Per-user access assumed | **Unverified.** |
+| Table                                                | Evidence                                                                                                                                     | Implication                                                                                                                                        |
+| ---------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `playlists`                                          | `actions/getPlaylists.ts` selects **all playlists with no `user_id` filter**; `PlaylistContent.tsx` then filters by owner **in the browser** | SELECT policy is almost certainly permissive. Every user's playlist names, descriptions, image paths, and `user_id`s are shipped to every visitor. |
+| `playlists`                                          | `app/playlist/[id]/page.tsx` fetches any playlist by id client-side, _then_ redirects if `user_id !== user.id`                               | Ownership check happens **after** the data is already in the browser. Not a security boundary.                                                     |
+| `messages`                                           | `Chat.tsx` reads with the **anon key**, filtered only by `room_code`                                                                         | Any anonymous client with a room code reads that room's entire chat history.                                                                       |
+| `messages`                                           | `server.js` writes with the **service role key**                                                                                             | All chat writes bypass RLS entirely.                                                                                                               |
+| `songs`                                              | Global read is intended                                                                                                                      | Fine by design.                                                                                                                                    |
+| `liked_songs`, `subscriptions`, `customers`, `users` | Per-user access assumed                                                                                                                      | **Unverified.**                                                                                                                                    |
 
 **Storage:** two buckets, `songs` and `images`, both read via `getPublicUrl()` → both public. Upload keys are `song-${values.title}-${uniqid}` and `image-${values.title}-${uniqid}`:
 
@@ -134,51 +134,51 @@ auth.users (Supabase managed)
 
 **Auth:** Supabase Auth — email magic link, Google, GitHub (per `AuthModal`). Cookie sessions via the deprecated auth-helpers; `middleware.ts` calls `getSession()` on every request purely to refresh. Frontend sync: `SessionContextProvider` → `MyUserContextProvider` (loads `users` + active `subscriptions`).
 
-**Service-role key in client-exposed code — verified negative.** I grepped the built client bundles for the full key. It is **not** present in `.next/static`; only the anon key is, which is correct. *(An initial 40-character prefix match was a false positive — the anon and service-role JWTs share a 110-character prefix. The full-key check is the reliable one.)* The key is used only in `libs/supabaseAdmin.ts`, `app/api/websocket/route.ts`, and `server.js`, all server-side. **The exposure is the committed `.env` file, not the bundle.**
+**Service-role key in client-exposed code — verified negative.** I grepped the built client bundles for the full key. It is **not** present in `.next/static`; only the anon key is, which is correct. _(An initial 40-character prefix match was a false positive — the anon and service-role JWTs share a 110-character prefix. The full-key check is the reliable one.)_ The key is used only in `libs/supabaseAdmin.ts`, `app/api/websocket/route.ts`, and `server.js`, all server-side. **The exposure is the committed `.env` file, not the bundle.**
 
 **Realtime:** not used anywhere. The rooms feature reimplements it with a bespoke `ws` server — Supabase Realtime (broadcast + presence) is a direct replacement.
 
 **Indexes:** unverifiable. Based on query patterns, these are likely missing and needed:
 
-| Table | Column(s) | Driven by |
-| --- | --- | --- |
-| `songs` | `created_at DESC` | every list query orders by it |
-| `songs` | `title` (GIN + `pg_trgm`) | `ilike '%term%'` search — currently a seq scan |
-| `songs` | `user_id` | library page |
-| `liked_songs` | `(user_id, created_at DESC)` | liked page |
-| `playlists` | `user_id` | playlist listing |
-| `messages` | `(room_code, created_at)` | every chat load + hourly cleanup |
-| `subscriptions` | `(user_id, status)` | `useUser` on every page load |
-| `customers` | `stripe_customer_id` | every webhook delivery |
+| Table           | Column(s)                    | Driven by                                      |
+| --------------- | ---------------------------- | ---------------------------------------------- |
+| `songs`         | `created_at DESC`            | every list query orders by it                  |
+| `songs`         | `title` (GIN + `pg_trgm`)    | `ilike '%term%'` search — currently a seq scan |
+| `songs`         | `user_id`                    | library page                                   |
+| `liked_songs`   | `(user_id, created_at DESC)` | liked page                                     |
+| `playlists`     | `user_id`                    | playlist listing                               |
+| `messages`      | `(room_code, created_at)`    | every chat load + hourly cleanup               |
+| `subscriptions` | `(user_id, status)`          | `useUser` on every page load                   |
+| `customers`     | `stripe_customer_id`         | every webhook delivery                         |
 
 ### 2.3 Feature Inventory (Step 3)
 
-| Feature | State | Notes |
-| --- | --- | --- |
-| Auth — magic link / Google / GitHub | ✅ Working | Via Supabase Auth UI |
-| Home — newest songs | ⚠️ Capped | Fetches **all** songs, renders `.slice(0, 6)` |
-| Explore all + 4 sort modes | ⚠️ Fragile | Crashes on any null `title` |
-| Search by title | ⚠️ Capped | `ilike` unindexed; **results hard-capped at 6** |
-| Liked songs | 🐛 Buggy | `useEffect(() => onPlay(songs[0].id), [])` — **throws on an empty list**, and force-autoplays on visit |
-| Library (own uploads) | ✅ Working | Empty state incorrectly reads "No Liked Songs" |
-| Upload mp3 + cover art | ⚠️ Unvalidated | No size/type/duration checks |
-| Playlists — create | ⚠️ Buggy | Insert `error` destructured but **never checked**; image key uses undefined field |
-| Playlists — add/remove song | ⚠️ Fragile | Read-modify-write on `song_ids` array; **string/number `indexOf` mismatch**; lost-update race |
-| Playlists — view | ⚠️ Client-only | Ownership enforced after fetch |
-| Player — play/pause/next/prev/seek/volume/mute | ✅ Working | Seek + prev/next **hidden on mobile** |
-| Random song button | ✅ Working | Home page only |
-| Repeat / shuffle | ❌ **Does not exist** | README claims both |
-| Queue UI | ❌ Not built | Queue exists in state only |
-| Stripe subscribe | ⚠️ Working | Checkout route **never checks the user is authenticated** |
-| Stripe customer portal | 🐛 Buggy | `catch` block is missing `return` → route returns `undefined` |
-| Account page | ⚠️ Fragile | `app_metadata.providers.includes()` throws if undefined |
-| Music room — create/join by code | ✅ Working | 6-char client-generated code, no server registry |
-| Music room — shared playback | 🐛 Broken | Broadcasts to **all connected clients globally**, not per-room |
-| Music room — chat | 🐛 Broken | Same global broadcast; **two sockets per member**; no auth |
-| Premium gating on playback | ❌ Disabled | Commented out in `hooks/useOnPlay.ts` |
-| Follows / artists / albums / lyrics | ❌ Not built | — |
+| Feature                                        | State                 | Notes                                                                                                  |
+| ---------------------------------------------- | --------------------- | ------------------------------------------------------------------------------------------------------ |
+| Auth — magic link / Google / GitHub            | ✅ Working            | Via Supabase Auth UI                                                                                   |
+| Home — newest songs                            | ⚠️ Capped             | Fetches **all** songs, renders `.slice(0, 6)`                                                          |
+| Explore all + 4 sort modes                     | ⚠️ Fragile            | Crashes on any null `title`                                                                            |
+| Search by title                                | ⚠️ Capped             | `ilike` unindexed; **results hard-capped at 6**                                                        |
+| Liked songs                                    | 🐛 Buggy              | `useEffect(() => onPlay(songs[0].id), [])` — **throws on an empty list**, and force-autoplays on visit |
+| Library (own uploads)                          | ✅ Working            | Empty state incorrectly reads "No Liked Songs"                                                         |
+| Upload mp3 + cover art                         | ⚠️ Unvalidated        | No size/type/duration checks                                                                           |
+| Playlists — create                             | ⚠️ Buggy              | Insert `error` destructured but **never checked**; image key uses undefined field                      |
+| Playlists — add/remove song                    | ⚠️ Fragile            | Read-modify-write on `song_ids` array; **string/number `indexOf` mismatch**; lost-update race          |
+| Playlists — view                               | ⚠️ Client-only        | Ownership enforced after fetch                                                                         |
+| Player — play/pause/next/prev/seek/volume/mute | ✅ Working            | Seek + prev/next **hidden on mobile**                                                                  |
+| Random song button                             | ✅ Working            | Home page only                                                                                         |
+| Repeat / shuffle                               | ❌ **Does not exist** | README claims both                                                                                     |
+| Queue UI                                       | ❌ Not built          | Queue exists in state only                                                                             |
+| Stripe subscribe                               | ⚠️ Working            | Checkout route **never checks the user is authenticated**                                              |
+| Stripe customer portal                         | 🐛 Buggy              | `catch` block is missing `return` → route returns `undefined`                                          |
+| Account page                                   | ⚠️ Fragile            | `app_metadata.providers.includes()` throws if undefined                                                |
+| Music room — create/join by code               | ✅ Working            | 6-char client-generated code, no server registry                                                       |
+| Music room — shared playback                   | 🐛 Broken             | Broadcasts to **all connected clients globally**, not per-room                                         |
+| Music room — chat                              | 🐛 Broken             | Same global broadcast; **two sockets per member**; no auth                                             |
+| Premium gating on playback                     | ❌ Disabled           | Commented out in `hooks/useOnPlay.ts`                                                                  |
+| Follows / artists / albums / lyrics            | ❌ Not built          | —                                                                                                      |
 
-**Dead code confirmed unused:** `actions/getPlaylistsById.ts` (also *fundamentally broken* — `"use client"` + calls `useUser()` inside a non-component async function + imports `next/headers`), `actions/getPlaylistsByTitle.ts`, `actions/getPlaylistSongs.ts`, `hooks/useWebSocket.ts`, `app/room/[id]/components/Song.tsx` (uses a *third*, different WS URL scheme), `app/api/websocket/route.ts` (reaches for `req.socket.server`, which does not exist in App Router), empty `src/components/`, and the `react-router-dom` + `socket.io-client` dependencies.
+**Dead code confirmed unused:** `actions/getPlaylistsById.ts` (also _fundamentally broken_ — `"use client"` + calls `useUser()` inside a non-component async function + imports `next/headers`), `actions/getPlaylistsByTitle.ts`, `actions/getPlaylistSongs.ts`, `hooks/useWebSocket.ts`, `app/room/[id]/components/Song.tsx` (uses a _third_, different WS URL scheme), `app/api/websocket/route.ts` (reaches for `req.socket.server`, which does not exist in App Router), empty `src/components/`, and the `react-router-dom` + `socket.io-client` dependencies.
 
 **Missing asset:** `SongItem.tsx` and `PlaylistItem.tsx` fall back to `/images/music-placeholder.png`, which **does not exist** in `public/images/`. Every song without cover art renders a 404.
 
@@ -186,24 +186,24 @@ auth.users (Supabase managed)
 
 #### Security
 
-| # | Severity | Finding |
-| --- | --- | --- |
-| S1 | 🔴 **CRITICAL** | **`.env` is tracked in git** (`.gitignore` only excludes `.env*.local`) containing a live `SUPABASE_SERVICE_ROLE_KEY` (decoded `role: service_role`, valid to 2033), `STRIPE_SECRET_KEY`, and `STRIPE_WEBHOOK_SECRET`. Committed in `18efdaf` and present in history. Full RLS-bypassing DB read/write + Stripe account control for anyone with repo access. |
-| S2 | 🔴 **CRITICAL** | `next@13.5.4` — middleware authentication bypass (CVE-2025-29927). This app uses `middleware.ts`. Plus cache poisoning, SSRF, and DoS advisories. |
-| S3 | 🟠 **HIGH** | **WebSocket server has zero authentication.** No token, no session check. The client supplies its own `email`, `full_name`, and `avatar_url` in the CHAT payload and the server trusts and persists them → trivial identity spoofing. |
-| S4 | 🟠 **HIGH** | `server.js` broadcasts over `server.clients` — **every connected client across every room**. Room A's chat and track changes leak into Room B. |
-| S5 | 🟠 **HIGH** | **Authorization is client-side.** `getPlaylists()` returns all users' playlists; the owner filter runs in the browser. Playlist detail redirects only *after* fetching. |
-| S6 | 🟡 MED | **No input validation anywhere** — no schema validation library. Uploads accept arbitrary files/sizes; unsanitized user input goes into storage object keys. |
-| S7 | 🟡 MED | `/api/create-checkout-session` never checks `user` exists — passes `uuid: ''` to `createOrRetrieveCustomer`, creating an orphan Stripe customer. |
-| S8 | 🟡 MED | Chat history readable with the anon key given only a 6-character, client-generated room code. |
-| S9 | 🟡 MED | 25 npm vulnerabilities — two of which (`react-router-dom`, `socket.io-client`) come from **dependencies the app never imports**. |
-| S10 | 🟢 LOW | No security headers / CSP. No rate limiting on `/api/songs`. Raw `console.log(err)` of Stripe errors. |
+| #   | Severity        | Finding                                                                                                                                                                                                                                                                                                                                                      |
+| --- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| S1  | 🔴 **CRITICAL** | **`.env` is tracked in git** (`.gitignore` only excludes `.env*.local`) containing a live `SUPABASE_SERVICE_ROLE_KEY` (decoded `role: service_role`, valid to 2033), `STRIPE_SECRET_KEY`, and `STRIPE_WEBHOOK_SECRET`. Committed in `18efdaf` and present in history. Full RLS-bypassing DB read/write + Stripe account control for anyone with repo access. |
+| S2  | 🔴 **CRITICAL** | `next@13.5.4` — middleware authentication bypass (CVE-2025-29927). This app uses `middleware.ts`. Plus cache poisoning, SSRF, and DoS advisories.                                                                                                                                                                                                            |
+| S3  | 🟠 **HIGH**     | **WebSocket server has zero authentication.** No token, no session check. The client supplies its own `email`, `full_name`, and `avatar_url` in the CHAT payload and the server trusts and persists them → trivial identity spoofing.                                                                                                                        |
+| S4  | 🟠 **HIGH**     | `server.js` broadcasts over `server.clients` — **every connected client across every room**. Room A's chat and track changes leak into Room B.                                                                                                                                                                                                               |
+| S5  | 🟠 **HIGH**     | **Authorization is client-side.** `getPlaylists()` returns all users' playlists; the owner filter runs in the browser. Playlist detail redirects only _after_ fetching.                                                                                                                                                                                      |
+| S6  | 🟡 MED          | **No input validation anywhere** — no schema validation library. Uploads accept arbitrary files/sizes; unsanitized user input goes into storage object keys.                                                                                                                                                                                                 |
+| S7  | 🟡 MED          | `/api/create-checkout-session` never checks `user` exists — passes `uuid: ''` to `createOrRetrieveCustomer`, creating an orphan Stripe customer.                                                                                                                                                                                                             |
+| S8  | 🟡 MED          | Chat history readable with the anon key given only a 6-character, client-generated room code.                                                                                                                                                                                                                                                                |
+| S9  | 🟡 MED          | 25 npm vulnerabilities — two of which (`react-router-dom`, `socket.io-client`) come from **dependencies the app never imports**.                                                                                                                                                                                                                             |
+| S10 | 🟢 LOW          | No security headers / CSP. No rate limiting on `/api/songs`. Raw `console.log(err)` of Stripe errors.                                                                                                                                                                                                                                                        |
 
 **Checked and clean:** No `dangerouslySetInnerHTML` and no raw HTML injection anywhere — React's escaping covers the chat XSS surface. Stripe webhook signature verification is correctly implemented. The service-role key does not reach the client bundle. CSRF risk is limited by SameSite cookie defaults, though POST routes carry no origin check.
 
 #### Performance
 
-- **No pagination or `LIMIT` anywhere in the codebase** (`.limit(` / `.range(` appear zero times). `getSongs()` selects the entire `songs` table on every home and explore render, ships every row to the browser, and then calls `.slice(0, 6)`. `getPlaylists()` does the same for *all users'* playlists.
+- **No pagination or `LIMIT` anywhere in the codebase** (`.limit(` / `.range(` appear zero times). `getSongs()` selects the entire `songs` table on every home and explore render, ships every row to the browser, and then calls `.slice(0, 6)`. `getPlaylists()` does the same for _all users'_ playlists.
 - **Zustand is used with no selectors.** Every consumer calls `usePlayer()` and receives the whole store. Combined with the player's 500ms `setInterval` writing `soundPosition`, **every subscribed component in the tree re-renders twice per second** — Sidebar, Library, and every `MediaItem`/`SongItem` on screen. This is the single largest performance defect.
 - **`LikeButton` issues one query per rendered row.** A 50-song list fires 50 separate `liked_songs` selects on mount. Classic N+1.
 - `revalidate = 0` on every route plus a root layout that re-runs `getSongsByUserId()` and `getActiveProductsWithPrices()` on **every navigation** → 2 extra round-trips per page, zero caching, no ISR, no streaming, no `<Suspense>`.
@@ -249,7 +249,7 @@ auth.users (Supabase managed)
 These are not phase-one items. They are today items.
 
 1. **Rotate every committed credential.** In order:
-   - Supabase Dashboard → Settings → API → roll the `service_role` key (and the anon key). *Note: this project still uses legacy JWT-format keys; roll onto the new publishable/secret key format at the same time.*
+   - Supabase Dashboard → Settings → API → roll the `service_role` key (and the anon key). _Note: this project still uses legacy JWT-format keys; roll onto the new publishable/secret key format at the same time._
    - Stripe Dashboard → Developers → API keys → roll the secret key.
    - Stripe → Webhooks → roll the signing secret.
    - Update the values in Vercel's environment settings, **not** in a file.
@@ -260,125 +260,125 @@ These are not phase-one items. They are today items.
 
 ### 3.1 Security
 
-| ID | Action | Effort |
-| --- | --- | --- |
-| SEC-1 | Rotate all credentials; untrack `.env`; add `.env.example`; move config to Vercel env vars | **S** |
-| SEC-2 | Upgrade `next` → 13.5.11 now, then 15.x in Phase 2 | **S** / **L** |
-| SEC-3 | **Authenticate the WebSocket server.** Client sends its Supabase access token on connect; server verifies with `supabase.auth.getUser(token)`; derive `email`/`full_name`/`avatar_url` **server-side from the verified session** and stop trusting client-supplied identity | **M** |
-| SEC-4 | Scope WS broadcasts per room — track `Map<roomCode, Set<socket>>` instead of broadcasting to `server.clients` | **S** |
-| SEC-5 | Move all authorization into RLS. Filter `getPlaylists()` by `user_id` server-side; delete the client-side owner filter in `PlaylistContent.tsx`; make `playlist/[id]` a server component that 404s on non-owned rows | **M** |
-| SEC-6 | Add Zod validation at every trust boundary: API route inputs, upload metadata, WS message payloads, playlist/song forms | **M** |
-| SEC-7 | Enforce upload limits — max file size, MIME allow-list (`audio/mpeg`, `image/*`), magic-byte check; sanitize object keys and prefix with `${user.id}/` | **M** |
-| SEC-8 | Add the missing auth guard to `/api/create-checkout-session` (return 401 when `user` is null) | **S** |
-| SEC-9 | Gate `messages` reads behind room membership rather than possession of a room code; consider server-issued room codes with an owner and a TTL | **M** |
-| SEC-10 | `npm audit fix`; upgrade `ws`, `stripe`, `@stripe/stripe-js`, `supabase` CLI; replace `uniqid` with `crypto.randomUUID()` | **M** |
-| SEC-11 | Add security headers via `next.config.js` — CSP, HSTS, `X-Frame-Options`, `Referrer-Policy` | **S** |
-| SEC-12 | Rate-limit `/api/songs` and the checkout route (Upstash Ratelimit or Vercel middleware) | **S** |
-| SEC-13 | Add `npm audit --audit-level=high` + Dependabot/Renovate to CI | **S** |
+| ID     | Action                                                                                                                                                                                                                                                                      | Effort        |
+| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------- |
+| SEC-1  | Rotate all credentials; untrack `.env`; add `.env.example`; move config to Vercel env vars                                                                                                                                                                                  | **S**         |
+| SEC-2  | Upgrade `next` → 13.5.11 now, then 15.x in Phase 2                                                                                                                                                                                                                          | **S** / **L** |
+| SEC-3  | **Authenticate the WebSocket server.** Client sends its Supabase access token on connect; server verifies with `supabase.auth.getUser(token)`; derive `email`/`full_name`/`avatar_url` **server-side from the verified session** and stop trusting client-supplied identity | **M**         |
+| SEC-4  | Scope WS broadcasts per room — track `Map<roomCode, Set<socket>>` instead of broadcasting to `server.clients`                                                                                                                                                               | **S**         |
+| SEC-5  | Move all authorization into RLS. Filter `getPlaylists()` by `user_id` server-side; delete the client-side owner filter in `PlaylistContent.tsx`; make `playlist/[id]` a server component that 404s on non-owned rows                                                        | **M**         |
+| SEC-6  | Add Zod validation at every trust boundary: API route inputs, upload metadata, WS message payloads, playlist/song forms                                                                                                                                                     | **M**         |
+| SEC-7  | Enforce upload limits — max file size, MIME allow-list (`audio/mpeg`, `image/*`), magic-byte check; sanitize object keys and prefix with `${user.id}/`                                                                                                                      | **M**         |
+| SEC-8  | Add the missing auth guard to `/api/create-checkout-session` (return 401 when `user` is null)                                                                                                                                                                               | **S**         |
+| SEC-9  | Gate `messages` reads behind room membership rather than possession of a room code; consider server-issued room codes with an owner and a TTL                                                                                                                               | **M**         |
+| SEC-10 | `npm audit fix`; upgrade `ws`, `stripe`, `@stripe/stripe-js`, `supabase` CLI; replace `uniqid` with `crypto.randomUUID()`                                                                                                                                                   | **M**         |
+| SEC-11 | Add security headers via `next.config.js` — CSP, HSTS, `X-Frame-Options`, `Referrer-Policy`                                                                                                                                                                                 | **S**         |
+| SEC-12 | Rate-limit `/api/songs` and the checkout route (Upstash Ratelimit or Vercel middleware)                                                                                                                                                                                     | **S**         |
+| SEC-13 | Add `npm audit --audit-level=high` + Dependabot/Renovate to CI                                                                                                                                                                                                              | **S**         |
 
 ### 3.2 Database & Backend
 
-| ID | Action | Effort |
-| --- | --- | --- |
-| DB-1 | **Adopt migrations.** `supabase init`, capture current schema via `supabase db pull`, commit `supabase/migrations/`. Nothing else in this section is safe or repeatable without it. | **M** |
-| DB-2 | **Audit and document every RLS policy** (`select * from pg_policies`). Verify per-table, write the results into migrations. Highest-suspicion tables: `playlists`, `messages`, `liked_songs` | **M** |
-| DB-3 | Write explicit owner-scoped policies: `playlists` (owner CRUD), `messages` (room-member read, authenticated insert), `liked_songs` (owner CRUD), `songs` (public read, owner write), `subscriptions`/`customers`/`users` (owner read-only) | **M** |
-| DB-4 | **Regenerate `types_db.ts`** — it is missing `playlists` and `messages` — and **re-save it as UTF-8** | **S** |
-| DB-5 | **Fix the id type mismatch.** Reconcile `types.ts` (`Song.id: string`) with the DB (`int8`). Pick one — recommend migrating `songs.id` to `uuid` for a public music app, or standardize on `number` throughout. This resolves the silent playlist add/remove failure | **M** |
-| DB-6 | Add `NOT NULL` + defaults to `songs.title`, `songs.author`, `songs.song_path`, `songs.user_id` (backfill first) | **S** |
-| DB-7 | **Add the missing indexes** — `songs(created_at DESC)`, `songs(user_id)`, GIN `pg_trgm` on `songs(title)`, `liked_songs(user_id, created_at DESC)`, `playlists(user_id)`, `messages(room_code, created_at)`, `subscriptions(user_id, status)`, `customers(stripe_customer_id)` | **S** |
-| DB-8 | **Replace `playlists.song_ids` array with a `playlist_songs` join table** (`playlist_id`, `song_id`, `position`, `added_at`). Eliminates the read-modify-write lost-update race and enables ordering and FK integrity | **L** |
-| DB-9 | **Migrate off deprecated auth helpers** → `@supabase/ssr` (`createBrowserClient` / `createServerClient`), rewrite `middleware.ts` to the documented cookie-refresh pattern | **L** |
-| DB-10 | Parameterize every Supabase client with `<Database>` and delete all seven `as any` casts in `actions/` | **S** |
-| DB-11 | **Replace the custom WS server with Supabase Realtime** (broadcast + presence) — deletes `server.js`, the dead route, the unused hook, and the hardcoded Render endpoint in one move; auth comes free | **L** |
-| DB-12 | If keeping the WS server: read its URL from `NEXT_PUBLIC_WS_URL`, fix `package.json`'s `start:ws` (it points at a nonexistent `server.ts`), and open exactly one connection per room member | **M** |
-| DB-13 | Replace the hourly `setInterval` message cleanup with a `pg_cron` job | **S** |
-| DB-14 | Add Postgres full-text search (`tsvector` + GIN) or trigram search to replace `ilike '%…%'` | **M** |
-| DB-15 | Fix the `create-portal-link` `catch` block — it constructs a response without `return`ing it | **S** |
+| ID    | Action                                                                                                                                                                                                                                                                         | Effort |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| DB-1  | **Adopt migrations.** `supabase init`, capture current schema via `supabase db pull`, commit `supabase/migrations/`. Nothing else in this section is safe or repeatable without it.                                                                                            | **M**  |
+| DB-2  | **Audit and document every RLS policy** (`select * from pg_policies`). Verify per-table, write the results into migrations. Highest-suspicion tables: `playlists`, `messages`, `liked_songs`                                                                                   | **M**  |
+| DB-3  | Write explicit owner-scoped policies: `playlists` (owner CRUD), `messages` (room-member read, authenticated insert), `liked_songs` (owner CRUD), `songs` (public read, owner write), `subscriptions`/`customers`/`users` (owner read-only)                                     | **M**  |
+| DB-4  | **Regenerate `types_db.ts`** — it is missing `playlists` and `messages` — and **re-save it as UTF-8**                                                                                                                                                                          | **S**  |
+| DB-5  | **Fix the id type mismatch.** Reconcile `types.ts` (`Song.id: string`) with the DB (`int8`). Pick one — recommend migrating `songs.id` to `uuid` for a public music app, or standardize on `number` throughout. This resolves the silent playlist add/remove failure           | **M**  |
+| DB-6  | Add `NOT NULL` + defaults to `songs.title`, `songs.author`, `songs.song_path`, `songs.user_id` (backfill first)                                                                                                                                                                | **S**  |
+| DB-7  | **Add the missing indexes** — `songs(created_at DESC)`, `songs(user_id)`, GIN `pg_trgm` on `songs(title)`, `liked_songs(user_id, created_at DESC)`, `playlists(user_id)`, `messages(room_code, created_at)`, `subscriptions(user_id, status)`, `customers(stripe_customer_id)` | **S**  |
+| DB-8  | **Replace `playlists.song_ids` array with a `playlist_songs` join table** (`playlist_id`, `song_id`, `position`, `added_at`). Eliminates the read-modify-write lost-update race and enables ordering and FK integrity                                                          | **L**  |
+| DB-9  | **Migrate off deprecated auth helpers** → `@supabase/ssr` (`createBrowserClient` / `createServerClient`), rewrite `middleware.ts` to the documented cookie-refresh pattern                                                                                                     | **L**  |
+| DB-10 | Parameterize every Supabase client with `<Database>` and delete all seven `as any` casts in `actions/`                                                                                                                                                                         | **S**  |
+| DB-11 | **Replace the custom WS server with Supabase Realtime** (broadcast + presence) — deletes `server.js`, the dead route, the unused hook, and the hardcoded Render endpoint in one move; auth comes free                                                                          | **L**  |
+| DB-12 | If keeping the WS server: read its URL from `NEXT_PUBLIC_WS_URL`, fix `package.json`'s `start:ws` (it points at a nonexistent `server.ts`), and open exactly one connection per room member                                                                                    | **M**  |
+| DB-13 | Replace the hourly `setInterval` message cleanup with a `pg_cron` job                                                                                                                                                                                                          | **S**  |
+| DB-14 | Add Postgres full-text search (`tsvector` + GIN) or trigram search to replace `ilike '%…%'`                                                                                                                                                                                    | **M**  |
+| DB-15 | Fix the `create-portal-link` `catch` block — it constructs a response without `return`ing it                                                                                                                                                                                   | **S**  |
 
 ### 3.3 Performance
 
-| ID | Action | Effort |
-| --- | --- | --- |
-| PERF-1 | **Add server-side pagination** — `.range()` on every list query. Stop fetching whole tables to `.slice(0, 6)` in the browser. Infinite scroll or "load more" on home, explore, search, library, liked | **L** |
-| PERF-2 | **Use Zustand selectors everywhere** (`usePlayer(s => s.activeId)`). Move `soundPosition` out of the global store into `PlayerContent` local state, or subscribe transiently. Kills the twice-a-second whole-tree re-render | **M** |
-| PERF-3 | **Fix the `LikeButton` N+1** — fetch the user's liked song ids once into a store/context and have each button read from it | **M** |
-| PERF-4 | Replace `revalidate = 0` with real caching — tagged `revalidate` + `revalidateTag()` on mutation. Stop re-fetching layout data on every navigation | **M** |
-| PERF-5 | Convert the three client-rendered pages (`playlist/[id]`, `music-room`, `room/[id]`) to server components with client leaves | **M** |
-| PERF-6 | Add `<Suspense>` streaming boundaries so the header/sidebar paint before data resolves | **S** |
-| PERF-7 | **Cap animation stagger** at `Math.min(index, 8) * 0.05s`; drop framer-motion from list items entirely in favour of CSS | **S** |
-| PERF-8 | Raise the search debounce to 500ms, cancel in-flight requests with `AbortController`, and stop rebuilding the debounced function on every render in the room page | **S** |
-| PERF-9 | Add `sizes` to all `fill` images; convert the Header avatar `<img>` to `next/image`; **add the missing `music-placeholder.png`** | **S** |
-| PERF-10 | Add `@next/bundle-analyzer`, set a bundle budget, audit the `react-icons` footprint across 19 files | **S** |
-| PERF-11 | Evaluate replacing `use-sound`/howler with a plain `<audio>` element + Media Session API — smaller, maintained, and unlocks lock-screen controls | **M** |
+| ID      | Action                                                                                                                                                                                                                      | Effort |
+| ------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| PERF-1  | **Add server-side pagination** — `.range()` on every list query. Stop fetching whole tables to `.slice(0, 6)` in the browser. Infinite scroll or "load more" on home, explore, search, library, liked                       | **L**  |
+| PERF-2  | **Use Zustand selectors everywhere** (`usePlayer(s => s.activeId)`). Move `soundPosition` out of the global store into `PlayerContent` local state, or subscribe transiently. Kills the twice-a-second whole-tree re-render | **M**  |
+| PERF-3  | **Fix the `LikeButton` N+1** — fetch the user's liked song ids once into a store/context and have each button read from it                                                                                                  | **M**  |
+| PERF-4  | Replace `revalidate = 0` with real caching — tagged `revalidate` + `revalidateTag()` on mutation. Stop re-fetching layout data on every navigation                                                                          | **M**  |
+| PERF-5  | Convert the three client-rendered pages (`playlist/[id]`, `music-room`, `room/[id]`) to server components with client leaves                                                                                                | **M**  |
+| PERF-6  | Add `<Suspense>` streaming boundaries so the header/sidebar paint before data resolves                                                                                                                                      | **S**  |
+| PERF-7  | **Cap animation stagger** at `Math.min(index, 8) * 0.05s`; drop framer-motion from list items entirely in favour of CSS                                                                                                     | **S**  |
+| PERF-8  | Raise the search debounce to 500ms, cancel in-flight requests with `AbortController`, and stop rebuilding the debounced function on every render in the room page                                                           | **S**  |
+| PERF-9  | Add `sizes` to all `fill` images; convert the Header avatar `<img>` to `next/image`; **add the missing `music-placeholder.png`**                                                                                            | **S**  |
+| PERF-10 | Add `@next/bundle-analyzer`, set a bundle budget, audit the `react-icons` footprint across 19 files                                                                                                                         | **S**  |
+| PERF-11 | Evaluate replacing `use-sound`/howler with a plain `<audio>` element + Media Session API — smaller, maintained, and unlocks lock-screen controls                                                                            | **M**  |
 
 ### 3.4 UI/UX
 
-| ID | Action | Effort |
-| --- | --- | --- |
-| UX-1 | **Accessibility pass on the player** — real `<button>`s with `aria-label`s for play/pause/next/prev; convert the progress bar to a Radix Slider with keyboard seeking and `aria-valuetext` | **M** |
-| UX-2 | **Restore focus visibility** — replace every bare `focus:outline-none` with a visible `focus-visible:ring` | **S** |
-| UX-3 | Accessible names on all icon-only buttons; meaningful `alt` text (song/playlist titles, not `"image"`); `alt=""` only for genuinely decorative art | **S** |
-| UX-4 | Raise muted text from `neutral-400` to `neutral-300` to clear WCAG AA; audit contrast globally | **S** |
-| UX-5 | Add landmarks (`<nav>`, `<main>`, `<aside>`), a skip link, and an `aria-live` region for toasts | **S** |
-| UX-6 | **Bring player controls to mobile** — next/prev/seek are currently desktop-only. Add a full-screen "now playing" sheet | **M** |
-| UX-7 | **Make `error.tsx` functional** — accept `{ error, reset }`, show a retry button, log to a reporting service | **S** |
-| UX-8 | Replace spinner-only loading with skeleton screens matching each grid/list | **M** |
-| UX-9 | Fix wrong empty-state copy ("No Liked Songs" on the Library page); add illustrations and a clear CTA to each | **S** |
-| UX-10 | **Retire the 45s animated rainbow gradient header**; move to a per-page palette derived from cover art or a flat modern gradient | **S** |
-| UX-11 | Extract design tokens (colour, spacing, radius, type scale) into the Tailwind theme; stop hardcoding `neutral-*` per component | **M** |
-| UX-12 | Add keyboard shortcuts — space to play/pause, arrows to seek, `m` to mute | **S** |
-| UX-13 | Run axe DevTools + Lighthouse and fix to a ≥95 a11y score | **M** |
+| ID    | Action                                                                                                                                                                                     | Effort |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------ |
+| UX-1  | **Accessibility pass on the player** — real `<button>`s with `aria-label`s for play/pause/next/prev; convert the progress bar to a Radix Slider with keyboard seeking and `aria-valuetext` | **M**  |
+| UX-2  | **Restore focus visibility** — replace every bare `focus:outline-none` with a visible `focus-visible:ring`                                                                                 | **S**  |
+| UX-3  | Accessible names on all icon-only buttons; meaningful `alt` text (song/playlist titles, not `"image"`); `alt=""` only for genuinely decorative art                                         | **S**  |
+| UX-4  | Raise muted text from `neutral-400` to `neutral-300` to clear WCAG AA; audit contrast globally                                                                                             | **S**  |
+| UX-5  | Add landmarks (`<nav>`, `<main>`, `<aside>`), a skip link, and an `aria-live` region for toasts                                                                                            | **S**  |
+| UX-6  | **Bring player controls to mobile** — next/prev/seek are currently desktop-only. Add a full-screen "now playing" sheet                                                                     | **M**  |
+| UX-7  | **Make `error.tsx` functional** — accept `{ error, reset }`, show a retry button, log to a reporting service                                                                               | **S**  |
+| UX-8  | Replace spinner-only loading with skeleton screens matching each grid/list                                                                                                                 | **M**  |
+| UX-9  | Fix wrong empty-state copy ("No Liked Songs" on the Library page); add illustrations and a clear CTA to each                                                                               | **S**  |
+| UX-10 | **Retire the 45s animated rainbow gradient header**; move to a per-page palette derived from cover art or a flat modern gradient                                                           | **S**  |
+| UX-11 | Extract design tokens (colour, spacing, radius, type scale) into the Tailwind theme; stop hardcoding `neutral-*` per component                                                             | **M**  |
+| UX-12 | Add keyboard shortcuts — space to play/pause, arrows to seek, `m` to mute                                                                                                                  | **S**  |
+| UX-13 | Run axe DevTools + Lighthouse and fix to a ≥95 a11y score                                                                                                                                  | **M**  |
 
 ### 3.5 Features
 
 **Fixes to broken features (do these before adding anything new):**
 
-| ID | Action | Effort |
-| --- | --- | --- |
-| FEAT-1 | **Remove the crashing autoplay effect** in `LikedContent.tsx` — `onPlay(songs[0].id)` throws on an empty list and hijacks the page on every visit | **S** |
-| FEAT-2 | **Uncap search results** (currently hard-limited to 6) and home/playlist grids — pair with PERF-1 | **S** |
-| FEAT-3 | Fix `PlaylistModal` — check the insert `error`, and correct `values.title` → `values.name` in the image key | **S** |
-| FEAT-4 | Guard `ExploreContent` sorting against null titles | **S** |
-| FEAT-5 | Guard `AccountContent` against undefined `app_metadata.providers` | **S** |
-| FEAT-6 | **Fix music rooms end-to-end** — per-room broadcast, one socket per member, authenticated identity, synced play/pause/seek (the position-sync effect is currently commented out) | **L** |
-| FEAT-7 | Decide the fate of premium gating — the check in `useOnPlay` is commented out while `Header`/`Library` still gate uploads. **See §6, Q4** | **S** |
-| FEAT-8 | Correct the README (it advertises repeat and shuffle, which do not exist) | **S** |
+| ID     | Action                                                                                                                                                                           | Effort |
+| ------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| FEAT-1 | **Remove the crashing autoplay effect** in `LikedContent.tsx` — `onPlay(songs[0].id)` throws on an empty list and hijacks the page on every visit                                | **S**  |
+| FEAT-2 | **Uncap search results** (currently hard-limited to 6) and home/playlist grids — pair with PERF-1                                                                                | **S**  |
+| FEAT-3 | Fix `PlaylistModal` — check the insert `error`, and correct `values.title` → `values.name` in the image key                                                                      | **S**  |
+| FEAT-4 | Guard `ExploreContent` sorting against null titles                                                                                                                               | **S**  |
+| FEAT-5 | Guard `AccountContent` against undefined `app_metadata.providers`                                                                                                                | **S**  |
+| FEAT-6 | **Fix music rooms end-to-end** — per-room broadcast, one socket per member, authenticated identity, synced play/pause/seek (the position-sync effect is currently commented out) | **L**  |
+| FEAT-7 | Decide the fate of premium gating — the check in `useOnPlay` is commented out while `Header`/`Library` still gate uploads. **See §6, Q4**                                        | **S**  |
+| FEAT-8 | Correct the README (it advertises repeat and shuffle, which do not exist)                                                                                                        | **S**  |
 
 **New features worth adding:**
 
-| ID | Action | Effort |
-| --- | --- | --- |
-| FEAT-9 | **Shuffle and repeat** (off/one/all) — the README already claims them | **M** |
-| FEAT-10 | **Visible queue** — view, reorder, "play next", "add to queue" | **L** |
-| FEAT-11 | **Media Session API** — lock-screen art and controls, hardware media keys | **S** |
-| FEAT-12 | **Persist player state** across reloads (Zustand `persist`) — resume where the user left off | **S** |
-| FEAT-13 | Playlist covers, drag-to-reorder, public/private toggle, shareable links | **M** |
-| FEAT-14 | Recently played + listening history (needs a `play_events` table) | **M** |
-| FEAT-15 | Follows / artist pages / album grouping — the `songs.author` text column is doing an entity's job today | **L** |
-| FEAT-16 | Search improvements — filter by author, search playlists, recent searches, keyboard-navigable results | **M** |
-| FEAT-17 | PWA + offline shell + installability | **M** |
-| FEAT-18 | Crossfade / gapless playback | **M** |
+| ID      | Action                                                                                                  | Effort |
+| ------- | ------------------------------------------------------------------------------------------------------- | ------ |
+| FEAT-9  | **Shuffle and repeat** (off/one/all) — the README already claims them                                   | **M**  |
+| FEAT-10 | **Visible queue** — view, reorder, "play next", "add to queue"                                          | **L**  |
+| FEAT-11 | **Media Session API** — lock-screen art and controls, hardware media keys                               | **S**  |
+| FEAT-12 | **Persist player state** across reloads (Zustand `persist`) — resume where the user left off            | **S**  |
+| FEAT-13 | Playlist covers, drag-to-reorder, public/private toggle, shareable links                                | **M**  |
+| FEAT-14 | Recently played + listening history (needs a `play_events` table)                                       | **M**  |
+| FEAT-15 | Follows / artist pages / album grouping — the `songs.author` text column is doing an entity's job today | **L**  |
+| FEAT-16 | Search improvements — filter by author, search playlists, recent searches, keyboard-navigable results   | **M**  |
+| FEAT-17 | PWA + offline shell + installability                                                                    | **M**  |
+| FEAT-18 | Crossfade / gapless playback                                                                            | **M**  |
 
 ### 3.6 Code Quality & Architecture
 
-| ID | Action | Effort |
-| --- | --- | --- |
-| CQ-1 | **Delete all dead code** — `getPlaylistsById.ts`, `getPlaylistsByTitle.ts`, `getPlaylistSongs.ts`, `hooks/useWebSocket.ts`, `app/room/[id]/components/Song.tsx`, `app/api/websocket/route.ts`, empty `src/components/`, and the commented-out blocks in `useOnPlay` and the room page | **S** |
-| CQ-2 | **Eliminate every `as any` and `@ts-ignore`** — 7 in actions (fixed by DB-10), 4 in `supabaseAdmin.ts`, 1 in `PlayerContent.tsx`. Add `@typescript-eslint/no-explicit-any` as an error | **M** |
-| CQ-3 | Tighten `tsconfig` — `noUncheckedIndexedAccess`, `noImplicitOverride`, `exactOptionalPropertyTypes`; raise `target` from `es5` to `es2022` | **S** |
-| CQ-4 | **Make `types_db.ts` the single source of truth**; derive `types.ts` from it (`Tables<'songs'>`) instead of maintaining a contradictory parallel set | **M** |
-| CQ-5 | Add Prettier + `eslint-plugin-jsx-a11y` + `eslint-plugin-import`; run `--fix` across the repo | **S** |
-| CQ-6 | Rename the typo'd modules — `libs/stripeClientl.ts` → `stripeClient.ts`, `hooks/useAuthModel.ts` → `useAuthModal.ts` | **S** |
-| CQ-7 | **Migrate mutations to Server Actions** — uploads, likes, playlist edits currently run as inline client-side Supabase calls with no server validation | **L** |
-| CQ-8 | Add a root `error.tsx` + a React error boundary around the player | **S** |
-| CQ-9 | **Set up testing** — Vitest + React Testing Library for hooks/components (start with `usePlayer`, `useOnPlay`, `LikeButton`, `AddToPlaylist`), Playwright for auth → play → like → playlist. Target 60% on business logic | **L** |
-| CQ-10 | **Add CI** — GitHub Actions running typecheck, lint, test, build, and `npm audit` on every PR | **M** |
-| CQ-11 | Pin the runtime — `engines.node` in `package.json` + `.nvmrc` | **S** |
-| CQ-12 | **Upgrade Next.js 13 → 15** and React 18 → 19 (async `cookies()`/`headers()`, caching-default changes) | **L** |
-| CQ-13 | Consolidate the two global CSS files; drop the unused `.centered-modal` class | **S** |
-| CQ-14 | Add structured logging + Sentry; replace the ~30 `console.log`/`console.error` calls | **M** |
-| CQ-15 | Standardize data access — one pattern (Server Components + Server Actions) instead of today's mix of server actions, client-side queries, and API routes | **L** |
+| ID    | Action                                                                                                                                                                                                                                                                                | Effort |
+| ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| CQ-1  | **Delete all dead code** — `getPlaylistsById.ts`, `getPlaylistsByTitle.ts`, `getPlaylistSongs.ts`, `hooks/useWebSocket.ts`, `app/room/[id]/components/Song.tsx`, `app/api/websocket/route.ts`, empty `src/components/`, and the commented-out blocks in `useOnPlay` and the room page | **S**  |
+| CQ-2  | **Eliminate every `as any` and `@ts-ignore`** — 7 in actions (fixed by DB-10), 4 in `supabaseAdmin.ts`, 1 in `PlayerContent.tsx`. Add `@typescript-eslint/no-explicit-any` as an error                                                                                                | **M**  |
+| CQ-3  | Tighten `tsconfig` — `noUncheckedIndexedAccess`, `noImplicitOverride`, `exactOptionalPropertyTypes`; raise `target` from `es5` to `es2022`                                                                                                                                            | **S**  |
+| CQ-4  | **Make `types_db.ts` the single source of truth**; derive `types.ts` from it (`Tables<'songs'>`) instead of maintaining a contradictory parallel set                                                                                                                                  | **M**  |
+| CQ-5  | Add Prettier + `eslint-plugin-jsx-a11y` + `eslint-plugin-import`; run `--fix` across the repo                                                                                                                                                                                         | **S**  |
+| CQ-6  | Rename the typo'd modules — `libs/stripeClientl.ts` → `stripeClient.ts`, `hooks/useAuthModel.ts` → `useAuthModal.ts`                                                                                                                                                                  | **S**  |
+| CQ-7  | **Migrate mutations to Server Actions** — uploads, likes, playlist edits currently run as inline client-side Supabase calls with no server validation                                                                                                                                 | **L**  |
+| CQ-8  | Add a root `error.tsx` + a React error boundary around the player                                                                                                                                                                                                                     | **S**  |
+| CQ-9  | **Set up testing** — Vitest + React Testing Library for hooks/components (start with `usePlayer`, `useOnPlay`, `LikeButton`, `AddToPlaylist`), Playwright for auth → play → like → playlist. Target 60% on business logic                                                             | **L**  |
+| CQ-10 | **Add CI** — GitHub Actions running typecheck, lint, test, build, and `npm audit` on every PR                                                                                                                                                                                         | **M**  |
+| CQ-11 | Pin the runtime — `engines.node` in `package.json` + `.nvmrc`                                                                                                                                                                                                                         | **S**  |
+| CQ-12 | **Upgrade Next.js 13 → 15** and React 18 → 19 (async `cookies()`/`headers()`, caching-default changes)                                                                                                                                                                                | **L**  |
+| CQ-13 | Consolidate the two global CSS files; drop the unused `.centered-modal` class                                                                                                                                                                                                         | **S**  |
+| CQ-14 | Add structured logging + Sentry; replace the ~30 `console.log`/`console.error` calls                                                                                                                                                                                                  | **M**  |
+| CQ-15 | Standardize data access — one pattern (Server Components + Server Actions) instead of today's mix of server actions, client-side queries, and API routes                                                                                                                              | **L**  |
 
 ---
 
@@ -390,103 +390,103 @@ These are not phase-one items. They are today items.
 
 Executed on branch `phase-0-security` (3 commits, not pushed):
 
-| Item | Effort | Status |
-| --- | --- | --- |
-| Rotate Supabase service-role + anon keys, Stripe secret + webhook secret (SEC-1) | S | 🔴 **BLOCKED — requires you.** Dashboard access; cannot be automated. **This is the only step that revokes access.** |
-| `git rm --cached .env`, gitignore it, add `.env.example` (SEC-1) | S | ✅ Done — `d3ac0ac` |
-| `npm i next@13.5.11` — close the middleware auth bypass (SEC-2) | S | ✅ Done — `dceb2a7`. CVE-2025-29927 confirmed cleared; typecheck + build pass |
-| `npm uninstall react-router-dom socket.io-client` (SEC-9) | S | ✅ Done — `dceb2a7`. audit 25 → 20, critical 2 → 1 |
-| Decide on git history rewrite (§6 Q1) | S | ⚠️ **Your decision.** Repo confirmed **PUBLIC**, exposed **604 days** — see §6 Q1 |
+| Item                                                                             | Effort | Status                                                                                                               |
+| -------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------- |
+| Rotate Supabase service-role + anon keys, Stripe secret + webhook secret (SEC-1) | S      | 🔴 **BLOCKED — requires you.** Dashboard access; cannot be automated. **This is the only step that revokes access.** |
+| `git rm --cached .env`, gitignore it, add `.env.example` (SEC-1)                 | S      | ✅ Done — `d3ac0ac`                                                                                                  |
+| `npm i next@13.5.11` — close the middleware auth bypass (SEC-2)                  | S      | ✅ Done — `dceb2a7`. CVE-2025-29927 confirmed cleared; typecheck + build pass                                        |
+| `npm uninstall react-router-dom socket.io-client` (SEC-9)                        | S      | ✅ Done — `dceb2a7`. audit 25 → 20, critical 2 → 1                                                                   |
+| Decide on git history rewrite (§6 Q1)                                            | S      | ⚠️ **Your decision.** Repo confirmed **PUBLIC**, exposed **604 days** — see §6 Q1                                    |
 
 ### Phase 1 — Critical Security & Data Integrity (week 1–2) — ⏳ IN PROGRESS
 
 Commits `c12e48d` · `bf6ac9f` · `668e1f4` · `572ad0a` · `8b27f1b` on `phase-0-security`.
 
-| Item | Effort | Status |
-| --- | --- | --- |
-| Adopt Supabase migrations; capture current schema (DB-1) | M | ◐ `supabase/migrations/` created. `supabase db pull` still needs running against the live project |
-| Audit + document every RLS policy (DB-2) | M | 🔴 **BLOCKED — needs you.** `pg_policies` is not reachable over REST with any key. Run `supabase/audit/inspect_schema.sql` |
-| Write owner-scoped RLS policies (DB-3) | M | ◐ Written, **not applied** — `20260827000001`. Verify against DB-2 output first |
-| Move playlist authorization server-side (SEC-5) | M | ✅ `668e1f4` |
-| Authenticate the WebSocket layer; stop trusting client identity (SEC-3) | M | ✅ `bf6ac9f` |
-| Scope WS broadcasts per room (SEC-4) | S | ✅ `bf6ac9f` |
-| Auth guard on the checkout route (SEC-8) | S | ✅ `c12e48d` — plus server-side price validation |
-| Zod validation at all trust boundaries (SEC-6) | M | ✅ `c12e48d`, `572ad0a` |
-| Upload size/MIME/key-sanitization limits (SEC-7) | M | ✅ `572ad0a` |
-| `npm audit fix` + upgrade `ws`/`stripe`/`supabase` CLI (SEC-10) | M | ◐ `uniqid` removed. `ws`/`stripe`/`supabase` upgrades outstanding |
-| Security headers (SEC-11) | S | ✅ `572ad0a` — CSP is report-only pending tuning |
-| Rate limiting (SEC-12) | S | ⬜ Not started — needs a decision on Upstash vs. alternative |
-| Regenerate `types_db.ts` as UTF-8 (DB-4) | S | ⬜ Blocked on DB-2 output / `supabase gen types` |
-| Add all missing indexes (DB-7) | S | ◐ Written, **not applied** — `20260827000002` |
+| Item                                                                    | Effort | Status                                                                                                                     |
+| ----------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------- |
+| Adopt Supabase migrations; capture current schema (DB-1)                | M      | ◐ `supabase/migrations/` created. `supabase db pull` still needs running against the live project                          |
+| Audit + document every RLS policy (DB-2)                                | M      | 🔴 **BLOCKED — needs you.** `pg_policies` is not reachable over REST with any key. Run `supabase/audit/inspect_schema.sql` |
+| Write owner-scoped RLS policies (DB-3)                                  | M      | ◐ Written, **not applied** — `20260827000001`. Verify against DB-2 output first                                            |
+| Move playlist authorization server-side (SEC-5)                         | M      | ✅ `668e1f4`                                                                                                               |
+| Authenticate the WebSocket layer; stop trusting client identity (SEC-3) | M      | ✅ `bf6ac9f`                                                                                                               |
+| Scope WS broadcasts per room (SEC-4)                                    | S      | ✅ `bf6ac9f`                                                                                                               |
+| Auth guard on the checkout route (SEC-8)                                | S      | ✅ `c12e48d` — plus server-side price validation                                                                           |
+| Zod validation at all trust boundaries (SEC-6)                          | M      | ✅ `c12e48d`, `572ad0a`                                                                                                    |
+| Upload size/MIME/key-sanitization limits (SEC-7)                        | M      | ✅ `572ad0a`                                                                                                               |
+| `npm audit fix` + upgrade `ws`/`stripe`/`supabase` CLI (SEC-10)         | M      | ◐ `uniqid` removed. `ws`/`stripe`/`supabase` upgrades outstanding                                                          |
+| Security headers (SEC-11)                                               | S      | ✅ `572ad0a` — CSP is report-only pending tuning                                                                           |
+| Rate limiting (SEC-12)                                                  | S      | ⬜ Not started — needs a decision on Upstash vs. alternative                                                               |
+| Regenerate `types_db.ts` as UTF-8 (DB-4)                                | S      | ⬜ Blocked on DB-2 output / `supabase gen types`                                                                           |
+| Add all missing indexes (DB-7)                                          | S      | ◐ Written, **not applied** — `20260827000002`                                                                              |
 
 ### Phase 2 — Stability, Correctness & Performance (week 2–4)
 
-| Item | Effort |
-| --- | --- |
-| Fix the id type mismatch (DB-5) | M |
-| Fix crashing/buggy features — FEAT-1 through FEAT-5, DB-15 | S each |
-| Migrate to `@supabase/ssr` (DB-9) | L |
-| Upgrade Next.js 15 + React 19 (CQ-12) | L |
-| Server-side pagination everywhere (PERF-1) | L |
-| Zustand selectors; move playback position out of the global store (PERF-2) | M |
-| Fix the `LikeButton` N+1 (PERF-3) | M |
-| Real caching strategy (PERF-4) | M |
-| `NOT NULL` constraints + backfill (DB-6) | S |
-| Delete all dead code (CQ-1) | S |
-| Remove `as any` / `@ts-ignore` (CQ-2, DB-10) | M |
-| Prettier + a11y lint + CI (CQ-5, CQ-10, CQ-11) | M |
-| Test foundation — Vitest + first suites (CQ-9) | L |
+| Item                                                                       | Effort |
+| -------------------------------------------------------------------------- | ------ |
+| Fix the id type mismatch (DB-5)                                            | M      |
+| Fix crashing/buggy features — FEAT-1 through FEAT-5, DB-15                 | S each |
+| Migrate to `@supabase/ssr` (DB-9)                                          | L      |
+| Upgrade Next.js 15 + React 19 (CQ-12)                                      | L      |
+| Server-side pagination everywhere (PERF-1)                                 | L      |
+| Zustand selectors; move playback position out of the global store (PERF-2) | M      |
+| Fix the `LikeButton` N+1 (PERF-3)                                          | M      |
+| Real caching strategy (PERF-4)                                             | M      |
+| `NOT NULL` constraints + backfill (DB-6)                                   | S      |
+| Delete all dead code (CQ-1)                                                | S      |
+| Remove `as any` / `@ts-ignore` (CQ-2, DB-10)                               | M      |
+| Prettier + a11y lint + CI (CQ-5, CQ-10, CQ-11)                             | M      |
+| Test foundation — Vitest + first suites (CQ-9)                             | L      |
 
 ### Phase 3 — UX & Accessibility (week 4–5)
 
-| Item | Effort |
-| --- | --- |
-| Player accessibility — real buttons, keyboard seeking (UX-1) | M |
-| Focus rings, accessible names, alt text, contrast (UX-2 → UX-5) | S each |
-| Mobile player controls + now-playing sheet (UX-6) | M |
-| Functional error boundaries + skeleton loading (UX-7, UX-8, CQ-8) | M |
-| Empty-state copy and design (UX-9) | S |
-| Visual refresh — retire the rainbow gradient, add design tokens (UX-10, UX-11) | M |
-| Keyboard shortcuts (UX-12) | S |
-| axe + Lighthouse to ≥95 (UX-13) | M |
-| Full-text / trigram search (DB-14) | M |
+| Item                                                                           | Effort |
+| ------------------------------------------------------------------------------ | ------ |
+| Player accessibility — real buttons, keyboard seeking (UX-1)                   | M      |
+| Focus rings, accessible names, alt text, contrast (UX-2 → UX-5)                | S each |
+| Mobile player controls + now-playing sheet (UX-6)                              | M      |
+| Functional error boundaries + skeleton loading (UX-7, UX-8, CQ-8)              | M      |
+| Empty-state copy and design (UX-9)                                             | S      |
+| Visual refresh — retire the rainbow gradient, add design tokens (UX-10, UX-11) | M      |
+| Keyboard shortcuts (UX-12)                                                     | S      |
+| axe + Lighthouse to ≥95 (UX-13)                                                | M      |
+| Full-text / trigram search (DB-14)                                             | M      |
 
 ### Phase 4 — Features & Architecture (week 5+)
 
-| Item | Effort |
-| --- | --- |
-| `playlist_songs` join table migration (DB-8) | L |
-| Rooms rebuilt on Supabase Realtime (DB-11) — or hardened WS (DB-12) | L |
-| Fix room sync end-to-end (FEAT-6) | L |
-| Shuffle + repeat (FEAT-9) | M |
-| Visible queue (FEAT-10) | L |
-| Media Session API + persisted player state (FEAT-11, FEAT-12) | S |
-| Playlist enhancements (FEAT-13) | M |
-| Recently played / history (FEAT-14) | M |
-| Artists & follows (FEAT-15) | L |
-| Search improvements (FEAT-16) | M |
-| Migrate mutations to Server Actions (CQ-7, CQ-15) | L |
-| PWA / offline (FEAT-17) | M |
-| Sentry + structured logging (CQ-14) | M |
+| Item                                                                | Effort |
+| ------------------------------------------------------------------- | ------ |
+| `playlist_songs` join table migration (DB-8)                        | L      |
+| Rooms rebuilt on Supabase Realtime (DB-11) — or hardened WS (DB-12) | L      |
+| Fix room sync end-to-end (FEAT-6)                                   | L      |
+| Shuffle + repeat (FEAT-9)                                           | M      |
+| Visible queue (FEAT-10)                                             | L      |
+| Media Session API + persisted player state (FEAT-11, FEAT-12)       | S      |
+| Playlist enhancements (FEAT-13)                                     | M      |
+| Recently played / history (FEAT-14)                                 | M      |
+| Artists & follows (FEAT-15)                                         | L      |
+| Search improvements (FEAT-16)                                       | M      |
+| Migrate mutations to Server Actions (CQ-7, CQ-15)                   | L      |
+| PWA / offline (FEAT-17)                                             | M      |
+| Sentry + structured logging (CQ-14)                                 | M      |
 
 ---
 
 ## 5. Breaking Changes / Risks
 
-| Change | Risk | Mitigation |
-| --- | --- | --- |
-| **Credential rotation (Phase 0)** | Production breaks the moment old keys die if Vercel env vars aren't updated in the same window | Update Vercel env vars first, redeploy, verify, *then* revoke the old keys |
-| **Git history rewrite** | Rewrites every commit SHA; breaks clones, forks, and open PRs | Coordinate; force-push once; have collaborators re-clone. Rotation already neutralizes the risk — this is cleanup |
-| **`songs.id` type change (DB-5)** | Touches `liked_songs.song_id`, `playlists.song_ids`, and every client cast. **Data migration with FK rewrites** | Migrate in a transaction with a mapping table; keep the old column until verified; full backup first |
-| **`playlists.song_ids` → join table (DB-8)** | Backfill required; array data must be expanded into rows with positions preserved | Dual-write during transition; verify counts match before dropping the array column |
-| **Tightening RLS (DB-3)** | If current policies are permissive, correct policies **will** break queries that silently relied on cross-user reads (e.g. `getPlaylists()`) | Roll out on a staging branch; fix client queries first, then tighten policies |
-| **`NOT NULL` constraints (DB-6)** | Fails outright if existing rows contain nulls | Audit and backfill before applying |
-| **`@supabase/ssr` migration (DB-9)** | Different cookie handling — **all users are logged out** on deploy | Ship during low traffic; communicate; verify all three auth providers in staging |
-| **Next.js 15 upgrade (CQ-12)** | `cookies()`/`headers()` become async; caching defaults invert; every action file touched | Use the official codemod; upgrade on a branch; full manual regression pass |
-| **Supabase Realtime migration (DB-11)** | Rooms are the flagship feature; a regression is highly visible | Feature-flag; run both paths in parallel; migrate room-by-room |
-| **Storage key change to `${user.id}/…` (SEC-7)** | Existing objects live at flat paths; old URLs break | Apply to new uploads only; migrate old objects with a background script and update `song_path`/`image_path` |
-| **Pagination (PERF-1)** | Changes every list component's data contract | Ship per-route behind a flag |
-| **Upload validation (SEC-7)** | Files that were previously accepted will now be rejected | Communicate limits in the UI before enforcing |
+| Change                                           | Risk                                                                                                                                         | Mitigation                                                                                                        |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| **Credential rotation (Phase 0)**                | Production breaks the moment old keys die if Vercel env vars aren't updated in the same window                                               | Update Vercel env vars first, redeploy, verify, _then_ revoke the old keys                                        |
+| **Git history rewrite**                          | Rewrites every commit SHA; breaks clones, forks, and open PRs                                                                                | Coordinate; force-push once; have collaborators re-clone. Rotation already neutralizes the risk — this is cleanup |
+| **`songs.id` type change (DB-5)**                | Touches `liked_songs.song_id`, `playlists.song_ids`, and every client cast. **Data migration with FK rewrites**                              | Migrate in a transaction with a mapping table; keep the old column until verified; full backup first              |
+| **`playlists.song_ids` → join table (DB-8)**     | Backfill required; array data must be expanded into rows with positions preserved                                                            | Dual-write during transition; verify counts match before dropping the array column                                |
+| **Tightening RLS (DB-3)**                        | If current policies are permissive, correct policies **will** break queries that silently relied on cross-user reads (e.g. `getPlaylists()`) | Roll out on a staging branch; fix client queries first, then tighten policies                                     |
+| **`NOT NULL` constraints (DB-6)**                | Fails outright if existing rows contain nulls                                                                                                | Audit and backfill before applying                                                                                |
+| **`@supabase/ssr` migration (DB-9)**             | Different cookie handling — **all users are logged out** on deploy                                                                           | Ship during low traffic; communicate; verify all three auth providers in staging                                  |
+| **Next.js 15 upgrade (CQ-12)**                   | `cookies()`/`headers()` become async; caching defaults invert; every action file touched                                                     | Use the official codemod; upgrade on a branch; full manual regression pass                                        |
+| **Supabase Realtime migration (DB-11)**          | Rooms are the flagship feature; a regression is highly visible                                                                               | Feature-flag; run both paths in parallel; migrate room-by-room                                                    |
+| **Storage key change to `${user.id}/…` (SEC-7)** | Existing objects live at flat paths; old URLs break                                                                                          | Apply to new uploads only; migrate old objects with a background script and update `song_path`/`image_path`       |
+| **Pagination (PERF-1)**                          | Changes every list component's data contract                                                                                                 | Ship per-route behind a flag                                                                                      |
+| **Upload validation (SEC-7)**                    | Files that were previously accepted will now be rejected                                                                                     | Communicate limits in the UI before enforcing                                                                     |
 
 **Standing risks:** there is no staging environment, no backup/restore procedure documented, and no test suite to catch regressions from any of the above. Phase 1 should establish at least the first and third.
 
@@ -516,7 +516,7 @@ Commits `c12e48d` · `bf6ac9f` · `668e1f4` · `572ad0a` · `8b27f1b` on `phase-
 
 5. **Music rooms: rebuild on Supabase Realtime, or harden the standalone `ws` server?** Realtime removes an entire deployment target, gives you auth and presence for free, and deletes three dead files — but it's a rewrite of the feature. The WS server can be fixed in place for less work but keeps a separate always-on host (currently Render) that isn't wired to any env var. **My recommendation: Supabase Realtime.**
 
-6. **How far do you want to go on Next.js?** *(Corrected during Phase 0: the current major is **16.x**, not 15.x as originally written. `npm audit` names `next@16.3.3` as the only full fix.)* Options: (a) stay on 13.5.11 patched, (b) move to 15.x, (c) move to 16.x + React 19. **My recommendation: (c)** — 13.x is EOL, and **29 high-severity advisories remain open at 13.5.11** (SSRF in Server Actions, cache poisoning, XSS via CSP nonces, request smuggling in rewrites). Only the critical middleware bypass was closed by the patch. Staying costs more over time than upgrading once.
+6. **How far do you want to go on Next.js?** _(Corrected during Phase 0: the current major is **16.x**, not 15.x as originally written. `npm audit` names `next@16.3.3` as the only full fix.)_ Options: (a) stay on 13.5.11 patched, (b) move to 15.x, (c) move to 16.x + React 19. **My recommendation: (c)** — 13.x is EOL, and **29 high-severity advisories remain open at 13.5.11** (SSRF in Server Actions, cache poisoning, XSS via CSP nonces, request smuggling in rewrites). Only the critical middleware bypass was closed by the patch. Staying costs more over time than upgrading once.
 
 7. **Uploads: who can upload, and what are the limits?** Any authenticated user today, with no size cap, no duration cap, and no moderation. What should max file size be, and does user-uploaded audio need any review before it's publicly playable?
 
@@ -528,4 +528,4 @@ Commits `c12e48d` · `bf6ac9f` · `668e1f4` · `572ad0a` · `8b27f1b` on `phase-
 
 ---
 
-*End of plan. No code has been changed. Awaiting review before Phase 0.*
+_End of plan. No code has been changed. Awaiting review before Phase 0._

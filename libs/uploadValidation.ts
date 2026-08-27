@@ -27,13 +27,14 @@ export const slugify = (input: string): string =>
     .replace(/^-+|-+$/g, "")
     .slice(0, 60) || "untitled";
 
-export const buildObjectKey = (
-  userId: string,
-  title: string,
-  file: File
-): string => {
+export const buildObjectKey = (userId: string, title: string, file: File): string => {
   const ext = file.name.includes(".")
-    ? file.name.split(".").pop()!.toLowerCase().replace(/[^a-z0-9]/g, "").slice(0, 5)
+    ? file.name
+        .split(".")
+        .pop()!
+        .toLowerCase()
+        .replace(/[^a-z0-9]/g, "")
+        .slice(0, 5)
     : "bin";
   return `${userId}/${slugify(title)}-${crypto.randomUUID()}.${ext}`;
 };

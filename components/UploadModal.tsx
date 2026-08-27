@@ -9,11 +9,7 @@ import toast from "react-hot-toast";
 import { useUser } from "@/hooks/useUser";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useRouter } from "next/navigation";
-import {
-  buildObjectKey,
-  songFormSchema,
-  validateFile,
-} from "@/libs/uploadValidation";
+import { buildObjectKey, songFormSchema, validateFile } from "@/libs/uploadValidation";
 
 const UploadModal = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -38,89 +34,85 @@ const UploadModal = () => {
   };
   const onSubmit: SubmitHandler<FieldValues> = async (values) => {
     try {
-        setIsLoading(true);
+      setIsLoading(true);
 
-        const imageFile = values.image?.[0] as File | undefined;
-        const songFile = values.song?.[0] as File | undefined;
+      const imageFile = values.image?.[0] as File | undefined;
+      const songFile = values.song?.[0] as File | undefined;
 
-        if(!user){
-            toast.error("You must be signed in to upload.");
-            return;
-        }
+      if (!user) {
+        toast.error("You must be signed in to upload.");
+        return;
+      }
 
-        const fields = songFormSchema.safeParse({
-            title: values.title,
-            author: values.author,
-        });
-        if(!fields.success){
-            setIsLoading(false);
-            return toast.error(fields.error.issues[0].message);
-        }
-
-        const songProblem = validateFile(songFile, "audio");
-        if(songProblem){
-            setIsLoading(false);
-            return toast.error(songProblem);
-        }
-
-        const imageProblem = validateFile(imageFile, "image");
-        if(imageProblem){
-            setIsLoading(false);
-            return toast.error(imageProblem);
-        }
-
-        const {
-            data: songData,
-            error: songError,
-        } = await supabaseClient.storage.from('songs').upload(buildObjectKey(user.id, fields.data.title, songFile!), songFile!, {
-            cacheControl: '3600',
-            upsert: false
-        });
-
-        if(songError){
-            setIsLoading(false);
-            return toast.error("Failed song upload!");
-        }
-
-        // Upload Image
-
-        const {
-            data: imageData,
-            error: imageError,
-        } = await supabaseClient.storage.from('images').upload(buildObjectKey(user.id, fields.data.title, imageFile!), imageFile!, {
-            cacheControl: '3600',
-            upsert: false
-        });
-
-        if(imageError){
-            setIsLoading(false);
-            return toast.error("Failed image upload!");
-        }
-
-        const {
-            error: supabaseError,
-         } = await supabaseClient.from('songs').insert({
-            user_id: user.id,
-            title: fields.data.title,
-            author: fields.data.author,
-            image_path: imageData.path,
-            song_path: songData.path,
-         });
-
-         if(supabaseError){
-            setIsLoading(false);
-            return toast.error(supabaseError.message)
-         }
-
-         router.refresh();
-         setIsLoading(false);
-         toast.success('Song created!');
-         reset();
-         uploadModal.onClose(); 
-    } catch (error) {
-        toast.error("Something went wrong!")
-    } finally{
+      const fields = songFormSchema.safeParse({
+        title: values.title,
+        author: values.author,
+      });
+      if (!fields.success) {
         setIsLoading(false);
+        return toast.error(fields.error.issues[0].message);
+      }
+
+      const songProblem = validateFile(songFile, "audio");
+      if (songProblem) {
+        setIsLoading(false);
+        return toast.error(songProblem);
+      }
+
+      const imageProblem = validateFile(imageFile, "image");
+      if (imageProblem) {
+        setIsLoading(false);
+        return toast.error(imageProblem);
+      }
+
+      const { data: songData, error: songError } = await supabaseClient.storage
+        .from("songs")
+        .upload(buildObjectKey(user.id, fields.data.title, songFile!), songFile!, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (songError) {
+        setIsLoading(false);
+        return toast.error("Failed song upload!");
+      }
+
+      // Upload Image
+
+      const { data: imageData, error: imageError } = await supabaseClient.storage
+        .from("images")
+        .upload(buildObjectKey(user.id, fields.data.title, imageFile!), imageFile!, {
+          cacheControl: "3600",
+          upsert: false,
+        });
+
+      if (imageError) {
+        setIsLoading(false);
+        return toast.error("Failed image upload!");
+      }
+
+      const { error: supabaseError } = await supabaseClient.from("songs").insert({
+        user_id: user.id,
+        title: fields.data.title,
+        author: fields.data.author,
+        image_path: imageData.path,
+        song_path: songData.path,
+      });
+
+      if (supabaseError) {
+        setIsLoading(false);
+        return toast.error(supabaseError.message);
+      }
+
+      router.refresh();
+      setIsLoading(false);
+      toast.success("Song created!");
+      reset();
+      uploadModal.onClose();
+    } catch (error) {
+      toast.error("Something went wrong!");
+    } finally {
+      setIsLoading(false);
     }
   };
   return (
@@ -164,7 +156,7 @@ const UploadModal = () => {
           />
         </div>
         <Button disabled={isLoading} type="submit">
-           {isLoading ? "Uploading..." : "Upload Song"}
+          {isLoading ? "Uploading..." : "Upload Song"}
         </Button>
       </form>
     </Modal>

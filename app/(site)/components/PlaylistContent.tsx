@@ -1,4 +1,4 @@
-"use client"
+"use client";
 import React from "react";
 import PlaylistItem from "@/components/PlaylistItem";
 import { Playlist } from "@/types";

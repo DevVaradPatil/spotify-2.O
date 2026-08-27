@@ -10,31 +10,28 @@ import { ProductWithPrice } from "@/types";
 import { useEffect, useState } from "react";
 
 interface ModalProviderProps {
-    products: ProductWithPrice[];
+  products: ProductWithPrice[];
 }
 
-const ModalProvider: React.FC<ModalProviderProps> = ({
-    products
-}) => {
-    const [isMounted, setIsMounted] = useState(false);
+const ModalProvider: React.FC<ModalProviderProps> = ({ products }) => {
+  const [isMounted, setIsMounted] = useState(false);
 
-    useEffect(() => {
-      setIsMounted(true);
-    }, []);
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
-    if(!isMounted){
-        return null;
-    }
-    
+  if (!isMounted) {
+    return null;
+  }
 
-    return (
-        <>
-            <AuthModal/>
-            <UploadModal/>
-            <SubscribeModal products={products}/>
-            <PlaylistModal />
-        </>
-    )
+  return (
+    <>
+      <AuthModal />
+      <UploadModal />
+      <SubscribeModal products={products} />
+      <PlaylistModal />
+    </>
+  );
 };
 
 export default ModalProvider;

@@ -5,22 +5,33 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Commands
 
 ```bash
-npm run dev        # Next.js dev server on :3000
-npm run build      # production build
-npm start          # serve the production build
-npm run lint       # next lint (eslint-config-next/core-web-vitals only)
-node server.js     # WebSocket server for music rooms, port 8080
+npm run dev          # Next.js dev server on :3000
+npm run build        # production build
+npm start            # serve the production build
+npm run lint         # next lint + jsx-a11y
+npm run typecheck    # tsc --noEmit
+npm run format       # prettier --write .
+npm run format:check # prettier --check . (CI gate)
 ```
 
-`npm run start:ws` is broken — it points at `server.ts`, which does not exist. Use `node server.js`.
+Everything runs on Vercel — there is no second host and no separate process to
+start. CI (`.github/workflows/ci.yml`) gates on typecheck, lint, format, build,
+and `npm audit --omit=dev --audit-level=high`.
 
-There is no test suite, no test runner, and no database migrations in this repo.
+There is still no test suite or test runner. Migrations live in
+`supabase/migrations/`; several are written but **not yet applied** — check
+`IMPROVEMENT_PLAN.md` before assuming the live schema matches them.
 
 ## Environment
 
-Env vars live in `.env` at the repo root (**this file is tracked by git** — `.gitignore` only excludes `.env*.local`). Required: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, `NEXT_PUBLIC_SITE_URL`.
+Env vars live in `.env`, which is gitignored. `.env.example` documents every
+key and which are server-only. See `IMPROVEMENT_PLAN.md` §3.0 for the history:
+`.env` was tracked and public for 604 days.
 
-`next.config.js` hardcodes the Supabase project hostname in `images.domains`. Pointing the app at a different Supabase project requires editing that list or `next/image` will reject every cover-art URL.
+`next.config.js` derives the Supabase image hostname from
+`NEXT_PUBLIC_SUPABASE_URL` via `remotePatterns`, so pointing at a different
+project no longer needs a code edit. It also sets the security headers,
+including a **report-only** CSP that has not yet been promoted to enforcing.
 
 ## Architecture
 
@@ -39,7 +50,11 @@ Next.js 13.5 App Router, TypeScript, `@/*` aliased to the repo root.
 Two separate paths, with no shared repository layer:
 
 - **Server**: `actions/*.ts` — each is a standalone async function creating `createServerComponentClient({ cookies })` and returning plain rows. Called from server page components (and from `app/api/songs/route.ts`).
-- **Client**: components call `useSupabaseClient()` / `useSessionContext()` directly and run their own inline mutations (`LikeButton`, `UploadModal`, `AddToPlaylist`, `PlaylistModal`), then `router.refresh()` to re-run the server components.
+- **Client**: components call `useSupabaseClient()` / `useSessionContext()` directly and run their own inline mutations (`UploadModal`, `AddToPlaylist`, `PlaylistModal`), then `router.refresh()` to re-run the server components.
+
+Likes are the exception: `hooks/useLikedSongs.tsx` fetches the user's liked ids
+once at the layout level and every `LikeButton` reads from that set with
+optimistic updates. Do not reintroduce a per-row query.
 
 Tables: `users`, `songs`, `liked_songs`, `playlists`, `subscriptions`, `products`, `prices`, `customers`, `messages`. `types_db.ts` is generated from Supabase; `types.ts` holds the hand-written app-level shapes actually used in components.
 
@@ -49,9 +64,15 @@ Playlists keep membership in a `song_ids` array column, mutated read-modify-writ
 
 ### Playback
 
-`hooks/usePlayer.ts` is a Zustand store holding only `ids` (the queue), `activeId`, `isPlaying`, `volume`, `soundPosition`, `soundDuration`. There is no audio element in the store.
+`hooks/usePlayer.ts` is a Zustand store holding only `ids` (the queue),
+`activeId`, `isPlaying`, and `volume`. There is no audio element in the store.
 
-`components/Player.tsx` resolves `activeId` → song row → public URL, then renders `PlayerContent` **keyed by `songUrl`**. Switching tracks therefore remounts `PlayerContent` and its `use-sound` (howler) instance — this remount *is* the track-change mechanism, so preserve the `key` when editing. Position is polled from howler every 500ms into the store.
+**Always subscribe with a selector** — `usePlayer((s) => s.activeId)`, never
+`usePlayer()`. Playback position is deliberately _not_ in this store; it ticks
+every 500ms and lives in `PlayerContent` local state. Putting it back would
+re-render every subscriber twice a second.
+
+`components/Player.tsx` resolves `activeId` → song row → public URL, then renders `PlayerContent` **keyed by `songUrl`**. Switching tracks therefore remounts `PlayerContent` and its `use-sound` (howler) instance — this remount _is_ the track-change mechanism, so preserve the `key` when editing. Position is polled from howler every 500ms into the store.
 
 `hooks/useOnPlay.ts` is the single entry point for starting playback from any list: it opens the auth modal when signed out, then sets `activeId` plus the full list as the queue. The subscription gate in it is commented out, so premium gating is currently inactive even though Stripe checkout works.
 
@@ -59,19 +80,36 @@ Playlists keep membership in a `song_ids` array column, mutated read-modify-writ
 
 All Stripe↔Supabase syncing lives in `libs/supabaseAdmin.ts` (service-role client): product/price upserts, customer creation, and `manageSubscriptionStatusChange`. It is driven by `app/api/webhooks/route.ts`. The client side goes `libs/helpers.ts#postData` → `/api/create-checkout-session` → `libs/stripeClientl.ts` (filename typo is intentional/load-bearing for imports) → `redirectToCheckout`. Checkout is created with a 7-day trial and promotion codes enabled.
 
-### Music rooms — three overlapping WebSocket implementations
+### Music rooms — Supabase Realtime
 
-Only `server.js` is real. When touching room features, know which is which:
+There is no separate WebSocket server. `server.js` and its Render deployment
+were removed: Vercel cannot host a long-lived socket process, and the room
+feature did not need one.
 
-- **`server.js`** — the working server. Plain `ws` on port 8080, reads the room code from the URL path segment, replays that room's `messages` rows on connect, broadcasts `{type:'PLAY_SONG', songId}` and `{type:'CHAT', email, content, full_name, avatar_url}` to **all** clients (not scoped per room), persists chat to Supabase, and deletes messages older than an hour on an interval.
-- **`app/api/websocket/route.ts`** — a non-functional port of the same logic; it reaches for `req.socket.server`, which does not exist in an App Router route handler. Dead code.
-- **`hooks/useWebSocket.ts`** — a generic hook that the room pages do not use.
+`hooks/useRoomChannel.ts` is the whole implementation. It opens one Supabase
+Realtime channel per room (`room:<CODE>`) carrying three things:
 
-`app/room/[id]/page.tsx` and `app/room/[id]/components/Chat.tsx` each open their **own** connection to the hardcoded endpoint `wss://spotify-backend-r813.onrender.com/<roomCode>` — the URL is not read from an env var, and there are two sockets per room member. `Chat.tsx` additionally fetches history straight from Supabase with its own anon-key client, duplicating the server's replay. Room codes are 6-character client-generated strings with no server-side room registry.
+- **`broadcast`** on the `PLAY_SONG` event for track changes — ephemeral, since
+  a late joiner does not need history.
+- **`postgres_changes`** on `INSERT` into `messages` filtered by `room_code`,
+  so chat persistence and delivery are the same mechanism. `messages.user_id`
+  plus an RLS `with check (auth.uid() = user_id)` is what prevents the
+  impersonation the old server allowed — never trust `full_name`/`avatar_url`
+  on a row as proof of authorship.
+- **`presence`** for the listener count.
+
+`messages` must stay in the `supabase_realtime` publication or chat silently
+stops arriving. Retention is a `pg_cron` job, not application code.
+
+`app/room/[id]/page.tsx` owns the channel and passes messages down to
+`Chat.tsx`, which is presentational. `lastSyncedId` guards against echoing a
+received track straight back out.
 
 ## Conventions
 
-- Every route directory carries its own `loading.tsx` and `error.tsx`; add both when creating a route.
+- Every route directory carries its own `loading.tsx` and `error.tsx`; add both when creating a route. `error.tsx` takes `{ error, reset }` and renders a retry button.
+- Prettier is enforced in CI. Run `npm run format` before committing.
+- `jsx-a11y/recommended` is on and its violations are errors: interactive things are `<button>`, icon-only controls carry `aria-label`, and `focus:outline-none` always pairs with a `focus-visible:ring`.
 - Page components are server components that call `actions/*` and delegate to a `components/` child marked `"use client"` for interactivity.
 - User feedback is `react-hot-toast` throughout; Supabase errors are surfaced with `toast.error(error.message)` rather than thrown.
 - Shared framer-motion variants live in `variants.js` at the repo root.
