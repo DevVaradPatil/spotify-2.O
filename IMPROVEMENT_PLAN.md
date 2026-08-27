@@ -419,27 +419,29 @@ Commits `c12e48d` · `bf6ac9f` · `668e1f4` · `572ad0a` · `8b27f1b` on `phase-
 | Regenerate `types_db.ts` as UTF-8 (DB-4)                                | S      | ⬜ Blocked on DB-2 output / `supabase gen types`                                                                           |
 | Add all missing indexes (DB-7)                                          | S      | ◐ Written, **not applied** — `20260827000002`                                                                              |
 
-### Phase 2 — Stability, Correctness & Performance (week 2–4) — ⏳ IN PROGRESS
+### Phase 2 — Stability, Correctness & Performance (week 2–4) — ✅ COMPLETE
 
-Commits `adac2b6` · `d592df4` · `b460600` · `fcea9e8` · `5b84a25`.
+| Item                                                                   | Effort | Status                                                                                      |
+| ---------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------- |
+| **Remove the Render host — rooms on Supabase Realtime (DB-11, DB-13)** | L      | ✅ `adac2b6` — pulled forward from Phase 4                                                  |
+| Fix crashing/buggy features — FEAT-1, 4, 5, UX-7, UX-9                 | S each | ✅ `b460600`                                                                                |
+| `NOT NULL` constraints (DB-6)                                          | S      | ✅ Migration 4 applied                                                                      |
+| Server-side query limits (PERF-1)                                      | L      | ◐ `d592df4` — limits added, search uncapped. Cursor pagination / infinite scroll still open |
+| Zustand selectors; playback position out of the global store (PERF-2)  | M      | ✅ `d592df4`                                                                                |
+| Fix the `LikeButton` N+1 (PERF-3)                                      | M      | ✅ `d592df4`                                                                                |
+| Prettier + a11y lint + CI + pinned runtime (CQ-5, CQ-10, CQ-11)        | M      | ✅ `fcea9e8`, ESLint 9 flat config in `a016599`                                             |
+| Regenerate `types_db.ts` (DB-4)                                        | S      | ✅ `b0a26d7`, `b34fb0c` — UTF-8, with `playlists` + `messages`                              |
+| Fix the id type mismatch (DB-5)                                        | M      | ✅ `b0a26d7` — song ids are `number` end to end                                             |
+| Remove `as any` / `@ts-ignore` (CQ-2, DB-10)                           | M      | ✅ `b0a26d7` — only the `use-sound` one remains, and that package genuinely ships no types  |
+| Migrate to `@supabase/ssr` (DB-9)                                      | L      | ✅ `8a29801`                                                                                |
+| **Upgrade Next 16 + React 19 (CQ-12)**                                 | L      | ✅ `a016599` — **runtime advisories now 0**                                                 |
+| Convert client-rendered pages to server components (PERF-5)            | M      | ✅ `a016599` — `playlist/[id]` was the last one                                             |
+| `npm audit` (SEC-10)                                                   | M      | ✅ 0 runtime advisories; 5 dev-only remain, none critical                                   |
+| Real caching strategy (PERF-4)                                         | M      | ⬜ **Not started** — every route still `revalidate = 0`                                     |
+| Test foundation — Vitest + first suites (CQ-9)                         | L      | ⬜ **Not started**                                                                          |
+| Delete remaining dead code (CQ-1)                                      | S      | ◐ `getPlaylistsByTitle` still unused                                                        |
 
-| Item                                                                   | Effort | Status                                                                                            |
-| ---------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------- |
-| **Remove the Render host — rooms on Supabase Realtime (DB-11, DB-13)** | L      | ✅ `adac2b6` — pulled forward from Phase 4                                                        |
-| Fix crashing/buggy features — FEAT-1, 4, 5, UX-7, UX-9                 | S each | ✅ `b460600` (DB-15 landed in Phase 1)                                                            |
-| `NOT NULL` constraints (DB-6)                                          | S      | ◐ Written `20260827000004`, **not applied**. Null audit confirmed zero backfill needed            |
-| Server-side query limits (PERF-1)                                      | L      | ◐ `d592df4` — limits added, search uncapped. True cursor pagination / infinite scroll still to do |
-| Zustand selectors; playback position out of the global store (PERF-2)  | M      | ✅ `d592df4`                                                                                      |
-| Fix the `LikeButton` N+1 (PERF-3)                                      | M      | ✅ `d592df4`                                                                                      |
-| Prettier + a11y lint + CI + pinned runtime (CQ-5, CQ-10, CQ-11)        | M      | ✅ `fcea9e8`                                                                                      |
-| Delete dead code (CQ-1)                                                | S      | ◐ 6 files removed; `getPlaylistsByTitle` and `getPlaylistSongs` still unused                      |
-| Remaining `npm audit` fixes (SEC-10)                                   | M      | ◐ `5b84a25` — runtime advisories 7 → 2, no criticals. Last 2 need CQ-12                           |
-| Fix the id type mismatch (DB-5)                                        | M      | ⬜ **Not started**                                                                                |
-| Migrate to `@supabase/ssr` (DB-9)                                      | L      | ⬜ **Not started** — logs every user out on deploy                                                |
-| Upgrade Next.js 16 + React 19 (CQ-12)                                  | L      | ⬜ **Not started** — blocks the last 2 advisories                                                 |
-| Real caching strategy (PERF-4)                                         | M      | ⬜ Not started                                                                                    |
-| Remove `as any` / `@ts-ignore` (CQ-2, DB-10)                           | M      | ⬜ Not started — 4 actions, 4 in `supabaseAdmin`, 1 in `PlayerContent`. Blocked on DB-4           |
-| Test foundation — Vitest + first suites (CQ-9)                         | L      | ⬜ Not started                                                                                    |
+**Regression introduced:** `@supabase/ssr` adds roughly 70 kB of first-load JS per route versus the auth helpers it replaced. Tracked under PERF-10.
 
 ### Phase 3 — UX & Accessibility (week 4–5)
 
@@ -502,7 +504,7 @@ Commits `adac2b6` · `d592df4` · `b460600` · `fcea9e8` · `5b84a25`.
    - **Rotation is mandatory and urgent.** It is the only action that actually revokes access.
    - **History rewrite is now cleanup, not remedy.** GitHub retains unreferenced commits, forks keep full copies, and 604 days of scraping cannot be undone. Rewrite only after rotation, and only if you also want the secrets gone from the visible history. **Still your call — see the decision in §4 Phase 0.**
 
-2. **Can you export the live RLS policies?** This is the single biggest gap in the audit — no policies exist in the repo, so I inferred them from query behaviour and did not guess at definitions. Please run this in the Supabase SQL editor and share the output:
+2. ◐ **Partially answered.** The null audit and the `playlists`/`messages` id types came back; queries 1–8 of `audit/inspect_schema.sql` (full policy text, existing indexes, constraints, triggers, storage bucket policies) have not. Migrations 1–5 are all applied and the app works against them, so this is now confirmation rather than a blocker. Original ask: This is the single biggest gap in the audit — no policies exist in the repo, so I inferred them from query behaviour and did not guess at definitions. Please run this in the Supabase SQL editor and share the output:
 
    ```sql
    select schemaname, tablename, policyname, permissive, roles, cmd, qual, with_check
@@ -526,7 +528,7 @@ Commits `adac2b6` · `d592df4` · `b460600` · `fcea9e8` · `5b84a25`.
 
 8. **What is the actual product goal?** A portfolio piece, a real product for real listeners, or a learning sandbox? This changes the priority order significantly — a portfolio piece weights UI/UX and code quality; a real product weights security, tests, and observability first.
 
-9. **`songs.id` — migrate to `uuid` or standardize on `number`?** UUIDs avoid enumerable public ids and are the better fit for a music catalog; keeping `int8` is a far smaller migration. **See DB-5.**
+9. ~~**`songs.id` — migrate to `uuid` or standardize on `number`?**~~ **DECIDED — standardized on `number`, `b0a26d7`.** No data migration, and it fixed the silent playlist add/remove failure. Moving to `uuid` later remains possible but is now a deliberate choice rather than a correctness fix.
 
 10. **Is there a staging environment, or budget for a second Supabase project?** Several Phase 2/4 items (RLS tightening, `@supabase/ssr`, the id migration) really should not be tested against production.
 
