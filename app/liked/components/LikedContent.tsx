@@ -28,7 +28,7 @@ const LikedContent: React.FC<LikedContentProps> = ({ songs }) => {
 
   if (songs.length === 0) {
     return (
-      <div className="flex flex-col gap-y-2 w-full px-6 text-neutral-400">
+      <div className="flex flex-col gap-y-2 w-full px-6 text-content-muted">
         You haven&apos;t liked any songs yet.
       </div>
     );
@@ -39,7 +39,7 @@ const LikedContent: React.FC<LikedContentProps> = ({ songs }) => {
         <button
           onClick={handlePlaylist}
           aria-label="Play all songs"
-          className="rounded-full flex items-center cursor-pointer bg-green-500 p-4 shadow-lg transition hover:bg-green-600 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          className="rounded-full flex items-center cursor-pointer bg-accent p-4 shadow-lg transition hover:bg-accent-hover hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
         >
           <FaPlay className="text-black" aria-hidden="true" />
         </button>

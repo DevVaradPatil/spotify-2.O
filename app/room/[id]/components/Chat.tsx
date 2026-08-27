@@ -61,7 +61,7 @@ const Chat: React.FC<ChatProps> = ({ messages, sendChat }) => {
               className={`p-2 rounded-md max-w-[90%] break-words ${
                 isMine
                   ? "bg-blue-600 text-white self-end"
-                  : "bg-neutral-800 text-white self-start text-left"
+                  : "bg-surface-raised text-white self-start text-left"
               }`}
             >
               <span
@@ -94,7 +94,7 @@ const Chat: React.FC<ChatProps> = ({ messages, sendChat }) => {
         />
         <button
           onClick={handleSend}
-          className="bg-blue-600 text-white p-2 rounded-md disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+          className="bg-blue-600 text-white p-2 rounded-md disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
           disabled={sending || message.trim().length === 0}
           aria-label="Send message"
         >

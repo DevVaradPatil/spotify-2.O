@@ -25,44 +25,19 @@ body,
 }
 
 .css-selector {
-  background: linear-gradient(180deg, #167e3d, #4c99d6, #e34343, #af63e4);
-  background-size: 800% 800%;
-
-  -webkit-animation: gradient-animate 45s ease infinite;
-  -moz-animation: gradient-animate 45s ease infinite;
-  animation: gradient-animate 45s ease infinite;
+  /* Was a four-colour gradient animating on a 45s infinite loop on every
+     page — dated, and a continuous repaint behind all content. A static
+     wash keeps the depth without the cost. */
+  background: linear-gradient(180deg, #1f5c3a 0%, #16412c 45%, transparent 100%);
 }
 
-@-webkit-keyframes gradient-animate {
-  0% {
-    background-position: 2% 0%;
-  }
-  50% {
-    background-position: 99% 100%;
-  }
-  100% {
-    background-position: 2% 0%;
-  }
-}
-@-moz-keyframes gradient-animate {
-  0% {
-    background-position: 2% 0%;
-  }
-  50% {
-    background-position: 99% 100%;
-  }
-  100% {
-    background-position: 2% 0%;
-  }
-}
-@keyframes gradient-animate {
-  0% {
-    background-position: 2% 0%;
-  }
-  50% {
-    background-position: 99% 100%;
-  }
-  100% {
-    background-position: 2% 0%;
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

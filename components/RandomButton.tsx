@@ -23,13 +23,14 @@ const RandomButton: React.FC<RandomButtonProps> = ({ songs }) => {
       animate="show"
       variants={slideIn("up", " ", 0.5, 0.25)}
       onClick={onClick}
+      aria-label="Play a random song"
       className="relative  group hidden md:flex items-center rounded-md overflow-hidden gap-x-4 bg-neutral-100/10 hover:bg-neutral-100/20 transition pr-4"
     >
       <div className="relative min-h-[64px] min-w-[64px] bg-gradient-to-br from-green-700 to-blue-200">
-        <Image className=" scale-75" fill src="/images/random.png" alt="image" />
+        <Image className=" scale-75" fill src="/images/random.png" alt="" />
       </div>
       <p className="font-md truncate py-5">Play Random Song</p>
-      <div className="absolute transition opacity-0 rounded-full flex itec justify-center bg-green-500 p-4 drop-shadow-md right-5 group-hover:opacity-100 hover:scale-110">
+      <div className="absolute transition opacity-0 rounded-full flex items-center justify-center bg-accent p-4 drop-shadow-md right-5 group-hover:opacity-100 hover:scale-110">
         <FaPlay className="text-black" />
       </div>
     </motion.button>

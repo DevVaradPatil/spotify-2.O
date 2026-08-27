@@ -18,7 +18,9 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick, index }) => {
   const activeId = usePlayer((state) => state.activeId);
   const imagePath = useLoadImage(data);
   return (
-    <motion.div
+    <motion.button
+      type="button"
+      aria-label={`Play ${data.title} by ${data.author}`}
       initial="hidden"
       animate="show"
       variants={zoomIn(Math.min(index, 8) * 0.05, 0.25)}
@@ -38,6 +40,8 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick, index }) => {
       hover:bg-neutral-400/10 
       transition 
       p-3
+      text-left
+      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface
       ${activeId === data.id && "bg-neutral-500/40"}
     `}
     >
@@ -55,18 +59,18 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick, index }) => {
           className="object-cover"
           src={imagePath || "/images/music.png"}
           fill
-          alt="Image"
+          alt=""
         />
       </div>
       <div className="flex flex-col items-start w-full pt-4 gap-y-1">
         <p
-          className={`font-semibold truncate w-full ${activeId === data.id && "text-green-500"}`}
+          className={`font-semibold truncate w-full ${activeId === data.id && "text-accent"}`}
         >
           {data.title}
         </p>
         <p
           className="
-          text-neutral-400 
+          text-content-muted 
           text-sm 
           pb-4 
           w-full 
@@ -79,7 +83,7 @@ const SongItem: React.FC<SongItemProps> = ({ data, onClick, index }) => {
       <div className="absolute bottom-24 right-5">
         <PlayButton />
       </div>
-    </motion.div>
+    </motion.button>
   );
 };
 

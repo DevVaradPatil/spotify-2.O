@@ -22,7 +22,7 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs }) => {
         <button
           onClick={handlePlaylist}
           aria-label="Play all songs"
-          className="rounded-full flex items-center cursor-pointer bg-green-500 p-4 shadow-lg transition hover:bg-green-600 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          className="rounded-full flex items-center cursor-pointer bg-accent p-4 shadow-lg transition hover:bg-accent-hover hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
         >
           <FaPlay className="text-black" aria-hidden="true" />
         </button>
@@ -30,7 +30,7 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs }) => {
       </div>
       <div className="px-6">
         {songs.length === 0 ? (
-          <p className="flex flex-col gap-y-2 w-full px-3 md:px-6 text-neutral-400">
+          <p className="flex flex-col gap-y-2 w-full px-3 md:px-6 text-content-muted">
             No songs in playlist
           </p>
         ) : (

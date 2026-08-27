@@ -102,7 +102,7 @@ const AddToPlaylist: React.FC<AddToPlaylistProps> = ({ songId }) => {
   return (
     <>
       <button
-        className="mr-2 hover:text-neutral-400 cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+        className="mr-2 hover:text-content-muted cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         onClick={openModal}
         aria-label="Add to playlist"
       >
@@ -111,7 +111,7 @@ const AddToPlaylist: React.FC<AddToPlaylistProps> = ({ songId }) => {
 
       {isModalOpen && (
         <div className="centered-modal">
-          <div className="bg-neutral-800 rounded-md p-3 w-[90%]  md:max-w-[350px] text-center">
+          <div className="bg-surface-raised rounded-md p-3 w-[90%]  md:max-w-[350px] text-center">
             <div className="modal-content">
               <h2 className="text-white text-xl font-semibold mb-4">
                 Select Playlists
@@ -141,7 +141,7 @@ const AddToPlaylist: React.FC<AddToPlaylistProps> = ({ songId }) => {
                       </div>
                       <button
                         onClick={() => handleAddToPlaylist(playlist.id)}
-                        className=" bg-green-500 hover:bg-green-600 text-white p-1 rounded-full cursor-pointer"
+                        className=" bg-accent hover:bg-accent-hover text-white p-1 rounded-full cursor-pointer"
                       >
                         {isAdded ? (
                           <AiOutlineCheck size={20} />

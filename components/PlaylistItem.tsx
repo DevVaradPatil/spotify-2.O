@@ -50,14 +50,14 @@ const PlaylistItem: React.FC<PlaylistItemProps> = ({ data, index }) => {
           className="object-cover"
           src={imagePath || "/images/music.png"}
           fill
-          alt="Image"
+          alt=""
         />
       </div>
       <div className="flex flex-col items-start w-full pt-4 gap-y-1">
         <p className="font-semibold truncate w-full">{data.name}</p>
         <p
           className="
-          text-neutral-400 
+          text-content-muted 
           text-sm 
           pb-4 
           w-full 

@@ -60,19 +60,34 @@ const Sidebar: React.FC<SidebarProps> = ({ children, songs }) => {
         activeId && "h-[calc(100%-80px)]"
       )}
     >
-      <div className="hidden md:flex flex-col gap-y-2 bg-black h-full w-[300px] p-2">
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-50 focus:rounded-md focus:bg-accent focus:px-4 focus:py-2 focus:font-semibold focus:text-black"
+      >
+        Skip to content
+      </a>
+      <aside
+        aria-label="Library and navigation"
+        className="hidden md:flex flex-col gap-y-2 bg-canvas h-full w-[300px] p-2"
+      >
         <Box>
-          <div className="flex flex-col gap-y-4 px-5 py-4">
+          <nav aria-label="Main" className="flex flex-col gap-y-4 px-5 py-4">
             {routes.map((item) => (
               <SidebarItem key={item.label} {...item} />
             ))}
-          </div>
+          </nav>
         </Box>
         <Box className="overflow-y-auto h-full">
           <Library songs={songs} />
         </Box>
-      </div>
-      <main className="h-full flex-1 md:pr-2 overflow-y-auto md:py-2">{children}</main>
+      </aside>
+      <main
+        id="main-content"
+        tabIndex={-1}
+        className="h-full flex-1 md:pr-2 overflow-y-auto md:py-2"
+      >
+        {children}
+      </main>
     </div>
   );
 };

@@ -83,12 +83,12 @@ const Room = () => {
         : "Disconnected";
 
   return (
-    <div className="bg-neutral-900 rounded-lg p-2 flex flex-col justify-start items-center md:p-6 h-full w-full overflow-hidden relative">
+    <div className="bg-surface rounded-lg p-2 flex flex-col justify-start items-center md:p-6 h-full w-full overflow-hidden relative">
       <div className="absolute top-2 right-2 flex items-center gap-x-2 text-white/60 z-50 text-sm">
         <span
           className={`h-2 w-2 rounded-full ${
             status === "open"
-              ? "bg-green-500"
+              ? "bg-accent"
               : status === "connecting"
                 ? "bg-yellow-500"
                 : "bg-red-500"
@@ -114,8 +114,8 @@ const Room = () => {
             aria-selected={activeTab === tab}
             aria-controls={`room-panel-${tab}`}
             onClick={() => setActiveTab(tab)}
-            className={`w-full py-3 flex items-center px-5 justify-center capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-green-500 ${
-              activeTab === tab ? "bg-neutral-700" : ""
+            className={`w-full py-3 flex items-center px-5 justify-center capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent ${
+              activeTab === tab ? "bg-surface-hover" : ""
             }`}
           >
             {tab}
@@ -135,7 +135,7 @@ const Room = () => {
             </label>
             <input
               id="room-song-search"
-              className="flex w-full rounded-md bg-neutral-700 border border-transparent px-3 py-3 text-sm placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 mb-10"
+              className="flex w-full rounded-md bg-surface-hover border border-transparent px-3 py-3 text-sm placeholder:text-content-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent mb-10"
               placeholder="Search for songs"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}

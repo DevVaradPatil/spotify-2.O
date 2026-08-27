@@ -57,10 +57,10 @@ const ProgressBar: React.FC<ProgressBarProps> = ({
     aria-valuetext={`${formatTime(position)} of ${formatTime(duration)}`}
     onClick={onSeekClick}
     onKeyDown={onSeekKeyDown}
-    className="bg-neutral-300 h-1 rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+    className="bg-neutral-300 h-1 rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
   >
     <div
-      className="bg-green-500 h-1 rounded-lg"
+      className="bg-accent h-1 rounded-lg"
       style={{ width: `${duration > 0 ? (position / duration) * 100 : 0}%` }}
     />
   </div>
@@ -128,22 +128,33 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
     };
   }, [sound]);
 
-  const handlePlay = () => {
+  const handlePlay = useCallback(() => {
     if (!isPlaying) {
       play();
     } else {
       pause();
     }
-  };
+  }, [isPlaying, play, pause]);
 
-  const toggleMute = () => setVolume(volume === 0 ? 1 : 0);
+  const toggleMute = useCallback(
+    () => setVolume(volume === 0 ? 1 : 0),
+    [volume, setVolume]
+  );
 
-  const seekTo = (newPosition: number) => {
-    if (!sound || !Number.isFinite(newPosition)) return;
-    const clamped = Math.min(Math.max(newPosition, 0), duration || 0);
-    sound.seek(clamped);
-    setPosition(clamped);
-  };
+  const seekTo = useCallback(
+    (newPosition: number) => {
+      if (!sound || !Number.isFinite(newPosition)) return;
+      const clamped = Math.min(Math.max(newPosition, 0), duration || 0);
+      sound.seek(clamped);
+      setPosition(clamped);
+    },
+    [sound, duration]
+  );
+
+  const seekBy = useCallback(
+    (delta: number) => seekTo((sound?.seek() ?? position) + delta),
+    [seekTo, sound, position]
+  );
 
   const handleProgressBarClick = (e: React.MouseEvent<HTMLDivElement>) => {
     const progressBar = e.currentTarget;
@@ -155,10 +166,10 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   const handleProgressKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
     if (e.key === "ArrowRight") {
       e.preventDefault();
-      seekTo(position + 5);
+      seekBy(5);
     } else if (e.key === "ArrowLeft") {
       e.preventDefault();
-      seekTo(position - 5);
+      seekBy(-5);
     } else if (e.key === "Home") {
       e.preventDefault();
       seekTo(0);
@@ -167,6 +178,62 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
       seekTo(duration);
     }
   };
+
+  // UX-12 — global shortcuts. Ignored while focus is in a text field or a
+  // contentEditable, so typing a search query or a chat message is unaffected.
+  useEffect(() => {
+    const isTypingTarget = (target: EventTarget | null) => {
+      const el = target as HTMLElement | null;
+      if (!el) return false;
+      const tag = el.tagName;
+      return (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        el.isContentEditable
+      );
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      if (isTypingTarget(e.target)) return;
+
+      switch (e.key) {
+        case " ":
+          e.preventDefault();
+          handlePlay();
+          break;
+        case "ArrowRight":
+          e.preventDefault();
+          seekBy(5);
+          break;
+        case "ArrowLeft":
+          e.preventDefault();
+          seekBy(-5);
+          break;
+        case "m":
+        case "M":
+          e.preventDefault();
+          toggleMute();
+          break;
+        case "n":
+        case "N":
+          e.preventDefault();
+          onPlayNext();
+          break;
+        case "p":
+        case "P":
+          e.preventDefault();
+          onPlayPrevious();
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [handlePlay, seekBy, toggleMute, onPlayNext, onPlayPrevious]);
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 h-full">
@@ -181,23 +248,32 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
       <div className="flex md:hidden col-auto w-full justify-end items-center gap-x-1">
         <AddToPlaylist songId={activeId} />
         <button
+          onClick={toggleMute}
+          aria-label={volume === 0 ? "Unmute" : "Mute"}
+          className="text-content-muted hover:text-white transition rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+        >
+          <VolumeIcon size={24} aria-hidden="true" />
+        </button>
+        <button
           onClick={onPlayPrevious}
           aria-label="Previous track"
-          className="text-neutral-300 hover:text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 rounded-full"
+          title="Previous track (P)"
+          className="text-neutral-300 hover:text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-full"
         >
           <AiFillStepBackward size={26} aria-hidden="true" />
         </button>
         <button
           onClick={handlePlay}
           aria-label={isPlaying ? "Pause" : "Play"}
-          className="h-10 w-10 flex items-center justify-center rounded-full bg-white p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+          className="h-10 w-10 flex items-center justify-center rounded-full bg-white p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
         >
           <Icon size={30} className="text-black" aria-hidden="true" />
         </button>
         <button
           onClick={onPlayNext}
           aria-label="Next track"
-          className="text-neutral-300 hover:text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 rounded-full"
+          title="Next track (N)"
+          className="text-neutral-300 hover:text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-full"
         >
           <AiFillStepForward size={26} aria-hidden="true" />
         </button>
@@ -209,21 +285,22 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
           <button
             onClick={onPlayPrevious}
             aria-label="Previous track"
-            className="text-neutral-400 hover:text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 rounded-full"
+            className="text-content-muted hover:text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-full"
           >
             <AiFillStepBackward size={30} aria-hidden="true" />
           </button>
           <button
             onClick={handlePlay}
             aria-label={isPlaying ? "Pause" : "Play"}
-            className="flex items-center justify-center h-10 w-10 rounded-full bg-white p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+            title="Play/pause (Space)"
+            className="flex items-center justify-center h-10 w-10 rounded-full bg-white p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
           >
             <Icon size={30} className="text-black" aria-hidden="true" />
           </button>
           <button
             onClick={onPlayNext}
             aria-label="Next track"
-            className="text-neutral-400 hover:text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 rounded-full"
+            className="text-content-muted hover:text-white transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-full"
           >
             <AiFillStepForward size={30} aria-hidden="true" />
           </button>
@@ -248,7 +325,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
           <button
             onClick={toggleMute}
             aria-label={volume === 0 ? "Unmute" : "Mute"}
-            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 rounded-full"
+            className="focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded-full"
           >
             <VolumeIcon className="cursor-pointer" size={34} aria-hidden="true" />
           </button>

@@ -17,7 +17,7 @@ const ExploreContent: React.FC<ExploreContentProps> = ({ songs }) => {
   const onPlay = useOnPlay(songs);
 
   if (songs.length === 0) {
-    return <div className="mt-4 text-neutral-400">No Songs Available</div>;
+    return <div className="mt-4 text-content-muted">No Songs Available</div>;
   }
 
   const sortedSongs = [...songs];
@@ -34,26 +34,26 @@ const ExploreContent: React.FC<ExploreContentProps> = ({ songs }) => {
       <div className="mb-2 flex items-center gap-2 flex-wrap">
         <span className="mr-1 md:text-lg hidden md:flex">Sort By :</span>
         <button
-          className={`p-2 bg-neutral-600 flex gap-2 rounded-xl border-2 border-transparent ${sortBy === "createdAt" ? " bg-neutral-800 border-neutral-500" : ""}`}
+          className={`p-2 bg-neutral-600 flex gap-2 rounded-xl border-2 border-transparent ${sortBy === "createdAt" ? " bg-surface-raised border-neutral-500" : ""}`}
           onClick={() => setSortBy("createdAt")}
         >
           Created At <BsArrowUp size={22} />
         </button>
         <button
-          className={`p-2 bg-neutral-600 flex gap-2 rounded-xl border-2 border-transparent ${sortBy === "createdAtrev" ? " bg-neutral-800 border-neutral-500" : ""}`}
+          className={`p-2 bg-neutral-600 flex gap-2 rounded-xl border-2 border-transparent ${sortBy === "createdAtrev" ? " bg-surface-raised border-neutral-500" : ""}`}
           onClick={() => setSortBy("createdAtrev")}
         >
           Created At <BsArrowDown size={22} />
         </button>
         <button
-          className={`p-2 bg-neutral-600 flex gap-2 rounded-xl border-2 border-transparent ${sortBy === "alphabetical" ? " bg-neutral-800 border-neutral-500" : ""}`}
+          className={`p-2 bg-neutral-600 flex gap-2 rounded-xl border-2 border-transparent ${sortBy === "alphabetical" ? " bg-surface-raised border-neutral-500" : ""}`}
           onClick={() => setSortBy("alphabetical")}
         >
           Title
           <BsSortAlphaDown size={24} />
         </button>
         <button
-          className={`p-2 bg-neutral-600 flex gap-2 rounded-xl border-2 border-transparent ${sortBy === "alphabeticalrev" ? " bg-neutral-800 border-neutral-500" : ""}`}
+          className={`p-2 bg-neutral-600 flex gap-2 rounded-xl border-2 border-transparent ${sortBy === "alphabeticalrev" ? " bg-surface-raised border-neutral-500" : ""}`}
           onClick={() => setSortBy("alphabeticalrev")}
         >
           Title

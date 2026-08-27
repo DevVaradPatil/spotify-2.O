@@ -38,7 +38,7 @@ const MusicRoom = () => {
   };
 
   return (
-    <div className="flex flex-col bg-neutral-900 items-center justify-center h-full rounded-lg p-6">
+    <div className="flex flex-col bg-surface items-center justify-center h-full rounded-lg p-6">
       <div className="flex flex-col justify-center items-center w-full max-w-2xl">
         <h1 className="text-3xl font-extrabold text-white mb-6">Enter Room Code</h1>
         <input
@@ -53,7 +53,7 @@ const MusicRoom = () => {
         <div className="flex flex-col gap-4">
           <button
             onClick={onClick}
-            className="bg-green-500 justify-center text-white text-lg px-6 py-3 rounded-full hover:bg-green-600 transition flex items-center gap-2"
+            className="bg-accent justify-center text-white text-lg px-6 py-3 rounded-full hover:bg-accent-hover transition flex items-center gap-2"
           >
             Join Room
             <IoIosRocket fontSize={22} />

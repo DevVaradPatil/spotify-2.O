@@ -96,12 +96,14 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
           <div className="hidden md:flex gap-x-2 items-center">
             <button
               onClick={() => router.back()}
+              aria-label="Go back"
               className="rounded-full bg-black flex items-center justify-center hover:opacity-75 transition"
             >
               <RxCaretLeft size={35} className="text-white" />
             </button>
             <button
               onClick={() => router.forward()}
+              aria-label="Go forward"
               className="rounded-full bg-black flex items-center justify-center hover:opacity-75 transition"
             >
               <RxCaretRight size={35} className="text-white" />
@@ -110,18 +112,21 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
           <div className="flex md:hidden gap-x-2 items-center">
             <button
               onClick={() => router.push("/")}
+              aria-label="Home"
               className="rounded-full p-2 bg-white flex items-center justify-center hover:opacity-75"
             >
               <HiHome size={20} className="text-black" />
             </button>
             <button
               onClick={() => router.push("/search")}
+              aria-label="Search"
               className="rounded-full p-2 bg-white flex items-center justify-center hover:opacity-75"
             >
               <BiSearch size={20} className="text-black" />
             </button>
             <button
               onClick={() => router.push("/music-room")}
+              aria-label="Music room"
               className="rounded-full p-2 bg-white flex items-center justify-center hover:opacity-75"
             >
               <ImHeadphones size={20} className="text-black" />
@@ -130,6 +135,8 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
               <div className="relative" ref={menuRef}>
                 <button
                   onClick={() => setIsOpen(!isOpen)}
+                  aria-label={isOpen ? "Close menu" : "Open menu"}
+                  aria-expanded={isOpen}
                   className="rounded-full p-2 bg-white text-black flex items-center justify-center hover:opacity-75"
                 >
                   {isOpen ? <HiXMark size={20} /> : <BsThreeDotsVertical size={20} />}
@@ -142,21 +149,21 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
                   {isOpen && (
                     <>
                       <button
-                        className="font-semibold cursor-pointer text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 rounded"
+                        className="font-semibold cursor-pointer text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded"
                         onClick={onClick}
                       >
                         Add to Library
                       </button>
                       <div className="bg-neutral-600 h-px w-[130px] py-[0.3px]" />
                       <button
-                        className="font-semibold cursor-pointer text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 rounded"
+                        className="font-semibold cursor-pointer text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded"
                         onClick={createPlaylist}
                       >
                         Create a Playlist
                       </button>
                       <div className="bg-neutral-600 h-px w-[130px] py-[0.3px]" />
                       <button
-                        className="font-semibold cursor-pointer text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 rounded"
+                        className="font-semibold cursor-pointer text-left w-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent rounded"
                         onClick={handleExplore}
                       >
                         Explore All Songs
@@ -177,6 +184,7 @@ const Header: React.FC<HeaderProps> = ({ children, className }) => {
                   </Button>
                   <button
                     onClick={() => router.push("/account")}
+                    aria-label="Your account"
                     className="flex rounded-full bg-white w-10 h-10 overflow-hidden"
                   >
                     {user.user_metadata.avatar_url ? (

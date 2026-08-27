@@ -33,7 +33,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({ songId }) => {
       onClick={handleLike}
       aria-label={liked ? "Remove from liked songs" : "Add to liked songs"}
       aria-pressed={liked}
-      className="hover:opacity-75 transition rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+      className="hover:opacity-75 transition rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
     >
       <Icon color={liked ? "#22c55e" : "white"} size={25} aria-hidden="true" />
     </button>

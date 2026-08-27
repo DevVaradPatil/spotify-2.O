@@ -33,7 +33,9 @@ const MediaItem: React.FC<MediaItemProps> = ({
     return setId(data.id);
   };
   return (
-    <motion.div
+    <motion.button
+      type="button"
+      aria-label={`Play ${data.title} by ${data.author}`}
       initial="hidden"
       animate="show"
       variants={slideIn(
@@ -43,25 +45,25 @@ const MediaItem: React.FC<MediaItemProps> = ({
         0.25
       )}
       onClick={handleClick}
-      className={`flex items-center gap-x-3 cursor-pointer hover:bg-neutral-800/50 w-full p-2 rounded-md ${activeId === data.id && !inPlayer && "bg-neutral-800"}`}
+      className={`flex items-center gap-x-3 cursor-pointer hover:bg-surface-raised/50 w-full p-2 rounded-md text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${activeId === data.id && !inPlayer && "bg-surface-raised"}`}
     >
       <div className="relative rounded-md min-h-[48px] min-w-[48px] overflow-hidden">
         <Image
           fill
           src={imageUrl || "/images/liked.png"}
-          alt="media item"
+          alt=""
           className="object-cover"
         />
       </div>
       <div className="flex flex-col gap-y-1 overflow-hidden">
         <p
-          className={`truncate ${activeId === data.id && !inPlayer ? "text-green-600 font-semibold" : "text-white"}`}
+          className={`truncate ${activeId === data.id && !inPlayer ? "text-accent font-semibold" : "text-white"}`}
         >
           {data.title}
         </p>
-        <p className="text-neutral-400 text-sm truncate">{data.author}</p>
+        <p className="text-content-muted text-sm truncate">{data.author}</p>
       </div>
-    </motion.div>
+    </motion.button>
   );
 };
 
