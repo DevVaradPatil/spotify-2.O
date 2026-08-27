@@ -1,8 +1,14 @@
+"use client";
+
 import React, { useState } from "react";
 import Modal from "./Modal";
 import Input from "./Input";
-import uniqid from 'uniqid';
 import Button from "./Button";
+import {
+  buildObjectKey,
+  playlistFormSchema,
+  validateFile,
+} from "@/libs/uploadValidation";
 import usePlaylistModal from "@/hooks/usePlaylistModal";
 import { useUser } from "@/hooks/useUser";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -33,37 +39,60 @@ const PlaylistModal = () => {
     try {
       setIsLoading(true);
   
-      const user_id = user?.id;
-      const name = values.name; // Corrected field name
-      const desc = values.desc; // Corrected field name
-      const imageFile = values.image?.[0];
-      // Replace 'song_ids_here' with an array of song IDs for the playlist.
-      const song_ids: any = [];
-      const uniqueID = uniqid();
+      if (!user) {
+        setIsLoading(false);
+        return toast.error("You must be signed in to create a playlist.");
+      }
+
+      const fields = playlistFormSchema.safeParse({
+        name: values.name,
+        desc: values.desc,
+      });
+      if (!fields.success) {
+        setIsLoading(false);
+        return toast.error(fields.error.issues[0].message);
+      }
+
+      const imageFile = values.image?.[0] as File | undefined;
+      const imageProblem = validateFile(imageFile, "image");
+      if (imageProblem) {
+        setIsLoading(false);
+        return toast.error(imageProblem);
+      }
 
       const {
         data: imageData,
         error: imageError,
-    } = await supabaseClient.storage.from('images').upload(`image-${values.title}-${uniqueID}`, imageFile, {
-        cacheControl: '3600',
-        upsert: false
-    });
+      } = await supabaseClient.storage
+        .from('images')
+        // Previously interpolated `values.title`, a field this form does not
+        // have, so every cover was uploaded as `image-undefined-<id>`.
+        .upload(buildObjectKey(user.id, fields.data.name, imageFile!), imageFile!, {
+          cacheControl: '3600',
+          upsert: false
+        });
 
-    if(imageError){
-      setIsLoading(false);
-      return toast.error("Failed image upload!");
-  }
-    const image_path = imageData.path;
+      if(imageError){
+        setIsLoading(false);
+        return toast.error("Failed image upload!");
+      }
 
       // Insert a new playlist into the 'playlists' table.
-      const { data, error } = await supabaseClient.from("playlists").insert({
-        user_id,
-        song_ids,
-        name,
-        desc,
-        image_path
+      const { error } = await supabaseClient.from("playlists").insert({
+        user_id: user.id,
+        song_ids: [],
+        name: fields.data.name,
+        desc: fields.data.desc,
+        image_path: imageData.path
       });
-  
+
+      // This error was previously destructured and then never checked, so a
+      // failed insert still reported "Playlist created!".
+      if (error) {
+        setIsLoading(false);
+        return toast.error(error.message);
+      }
+
       router.refresh();
       setIsLoading(false);
       toast.success("Playlist created!"); // Updated success message
