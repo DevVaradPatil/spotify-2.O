@@ -3,65 +3,41 @@ import { useEffect, useRef, useState } from "react";
 import Input from "@/components/Input";
 import { IoSend } from "react-icons/io5";
 import { useUser } from "@/hooks/useUser";
-import type { RoomMessage } from "@/hooks/useRoomSocket";
-
-interface ChatMessage {
-  email: string;
-  content: string;
-  full_name: string | null;
-  avatar_url: string | null;
-}
+import { MAX_CHAT_LENGTH, type ChatMessage } from "@/hooks/useRoomChannel";
 
 interface ChatProps {
-  send: (payload: Record<string, unknown>) => boolean;
-  subscribe: (listener: (message: RoomMessage) => void) => () => void;
+  messages: ChatMessage[];
+  sendChat: (content: string) => Promise<boolean>;
 }
 
-const MAX_CHAT_LENGTH = 2000;
-
 /**
- * Chat no longer opens its own socket or its own Supabase client. It shares
- * the authenticated room socket, and history arrives as a replay from the
- * server on connect rather than a second direct query with the anon key.
+ * Chat is now a presentational component. History, delivery and persistence
+ * all live in useRoomChannel via Supabase Realtime — this no longer opens a
+ * socket or a Supabase client of its own.
  */
-const Chat: React.FC<ChatProps> = ({ send, subscribe }) => {
+const Chat: React.FC<ChatProps> = ({ messages, sendChat }) => {
   const { user } = useUser();
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [sending, setSending] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    return subscribe((incoming) => {
-      if (incoming.type !== "CHAT") return;
-      setMessages((prev) => [
-        ...prev,
-        {
-          email: incoming.email,
-          content: incoming.content,
-          full_name: incoming.full_name,
-          avatar_url: incoming.avatar_url,
-        },
-      ]);
-    });
-  }, [subscribe]);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
-  const sendMessage = () => {
+  const handleSend = async () => {
     const trimmed = message.trim();
-    if (!trimmed || trimmed.length > MAX_CHAT_LENGTH) return;
-    // The server derives identity from the verified session; we only send
-    // the content.
-    if (send({ type: "CHAT", content: trimmed })) {
-      setMessage("");
-    }
+    if (!trimmed || sending) return;
+    setSending(true);
+    const ok = await sendChat(trimmed);
+    if (ok) setMessage("");
+    setSending(false);
   };
 
-  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
     if (event.key === "Enter") {
-      sendMessage();
+      event.preventDefault();
+      handleSend();
     }
   };
 
@@ -72,25 +48,33 @@ const Chat: React.FC<ChatProps> = ({ send, subscribe }) => {
         aria-live="polite"
         aria-label="Room chat messages"
       >
-        {messages.map((msg, index) => (
-          <li
-            key={index}
-            className={`p-2 rounded-md max-w-[90%] break-words ${
-              msg.email === user?.email
-                ? "bg-blue-500 text-white self-end"
-                : "bg-neutral-800 text-white self-start text-left"
-            }`}
-          >
-            <span
-              className={`block text-xs text-neutral-300 ${
-                msg.email === user?.email ? "text-right" : "text-left"
+        {messages.length === 0 && (
+          <li className="text-neutral-300 text-sm m-auto">
+            No messages yet — say something.
+          </li>
+        )}
+        {messages.map((msg) => {
+          const isMine = msg.user_id === user?.id;
+          return (
+            <li
+              key={msg.id}
+              className={`p-2 rounded-md max-w-[90%] break-words ${
+                isMine
+                  ? "bg-blue-600 text-white self-end"
+                  : "bg-neutral-800 text-white self-start text-left"
               }`}
             >
-              {msg.full_name && <>{msg.full_name.split(" ")[0]}</>}
-            </span>
-            {msg.content}
-          </li>
-        ))}
+              <span
+                className={`block text-xs text-neutral-300 ${
+                  isMine ? "text-right" : "text-left"
+                }`}
+              >
+                {isMine ? "You" : (msg.full_name?.split(" ")[0] ?? "Someone")}
+              </span>
+              {msg.content}
+            </li>
+          );
+        })}
         <div ref={messagesEndRef} />
       </ul>
       <div className="flex w-full absolute bottom-0 justify-center items-center p-1 px-5">
@@ -102,15 +86,16 @@ const Chat: React.FC<ChatProps> = ({ send, subscribe }) => {
           type="text"
           value={message}
           maxLength={MAX_CHAT_LENGTH}
+          disabled={sending}
           onChange={(e) => setMessage(e.target.value)}
-          onKeyDown={handleKeyPress}
+          onKeyDown={handleKeyDown}
           placeholder="Type a message"
           className="flex-grow mr-2 rounded-md p-2"
         />
         <button
-          onClick={sendMessage}
-          className="bg-blue-500 text-white p-2 rounded-md disabled:opacity-50"
-          disabled={message.trim().length === 0}
+          onClick={handleSend}
+          className="bg-blue-600 text-white p-2 rounded-md disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+          disabled={sending || message.trim().length === 0}
           aria-label="Send message"
         >
           <IoSend fontSize={20} aria-hidden="true" />

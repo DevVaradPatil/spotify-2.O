@@ -8,43 +8,43 @@ import SearchContent from "@/app/search/components/SearchContent";
 import debounce from "lodash.debounce";
 import Chat from "./components/Chat";
 import usePlayer from "@/hooks/usePlayer";
-import useRoomSocket from "@/hooks/useRoomSocket";
+import useRoomChannel from "@/hooks/useRoomChannel";
 
 const Room = () => {
   const pathname = usePathname();
   const roomCode = (pathname!.split("/").pop() || "").toUpperCase();
   const { user } = useUser();
   const authModal = useAuthModal();
-  const [activeTab, setActiveTab] = useState("songs");
+  const [activeTab, setActiveTab] = useState<"songs" | "chat">("songs");
   const [songs, setSongs] = useState<Song[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const player = usePlayer();
 
-  const { send, subscribe, status } = useRoomSocket(roomCode);
+  const activeId = usePlayer((state) => state.activeId);
+  const setId = usePlayer((state) => state.setId);
+  const setIds = usePlayer((state) => state.setIds);
 
-  // Tracks the last id we either broadcast or received, so an incoming
-  // PLAY_SONG does not immediately echo back out again.
-  const lastBroadcastId = useRef<string | undefined>(player.activeId);
+  const { status, messages, listeners, sendChat, broadcastSong, setOnPlaySong } =
+    useRoomChannel(roomCode);
+
+  // Guards against echoing a track back out after receiving it.
+  const lastSyncedId = useRef<string | undefined>(activeId);
 
   useEffect(() => {
-    if (!user) {
-      authModal.onOpen();
-    }
+    if (!user) authModal.onOpen();
   }, [user, authModal]);
 
   const debouncedSearch = useMemo(
     () =>
       debounce(async (query: string, signal: AbortSignal) => {
-        if (query.length < 2) return;
+        if (query.trim().length < 2) return;
         try {
           const response = await fetch(
             `/api/songs?title=${encodeURIComponent(query)}`,
             { signal }
           );
-          if (!response.ok) return;
-          setSongs(await response.json());
+          if (response.ok) setSongs(await response.json());
         } catch {
-          // aborted or network error — nothing to show
+          // aborted or offline
         }
       }, 400),
     []
@@ -60,68 +60,82 @@ const Room = () => {
   }, [searchQuery, debouncedSearch]);
 
   useEffect(() => {
-    return subscribe((message) => {
-      if (message.type === "PLAY_SONG") {
-        const songId = String(message.songId);
-        lastBroadcastId.current = songId;
-        player.setId(songId);
-        player.setIds([songId]);
-      }
+    setOnPlaySong((songId) => {
+      lastSyncedId.current = songId;
+      setId(songId);
+      setIds([songId]);
     });
-  }, [subscribe, player]);
+  }, [setOnPlaySong, setId, setIds]);
 
   useEffect(() => {
-    if (!player.activeId) return;
-    if (player.activeId === lastBroadcastId.current) return;
-    lastBroadcastId.current = player.activeId;
-    send({ type: "PLAY_SONG", songId: player.activeId });
-  }, [player.activeId, send]);
+    if (!activeId || activeId === lastSyncedId.current) return;
+    lastSyncedId.current = activeId;
+    broadcastSong(activeId);
+  }, [activeId, broadcastSong]);
 
-  if (!user) {
-    return null;
-  }
+  if (!user) return null;
+
+  const statusLabel =
+    status === "open"
+      ? `Connected · ${listeners} listening`
+      : status === "connecting"
+        ? "Connecting…"
+        : "Disconnected";
 
   return (
     <div className="bg-neutral-900 rounded-lg p-2 flex flex-col justify-start items-center md:p-6 h-full w-full overflow-hidden relative">
-      <div className="absolute top-2 right-2 flex items-center gap-x-2 text-white opacity-50 z-50">
+      <div className="absolute top-2 right-2 flex items-center gap-x-2 text-white/60 z-50 text-sm">
         <span
           className={`h-2 w-2 rounded-full ${
             status === "open"
               ? "bg-green-500"
               : status === "connecting"
-              ? "bg-yellow-500"
-              : "bg-red-500"
+                ? "bg-yellow-500"
+                : "bg-red-500"
           }`}
           aria-hidden="true"
         />
-        <span className="sr-only">
-          {status === "open" ? "Connected to room" : "Not connected"}
+        <span className="sr-only" role="status">
+          {statusLabel}
         </span>
-        {roomCode}
+        <span aria-hidden="true">{listeners}</span>
+        <span className="font-mono tracking-widest">{roomCode}</span>
       </div>
-      <div className="flex fixed top-5 my-2 z-20 w-[90%] max-w-xl overflow-hidden bg-black rounded-full justify-evenly items-center">
-        <button
-          onClick={() => setActiveTab("songs")}
-          className={`w-full py-3 flex items-center px-5 justify-center ${activeTab === "songs" ? "bg-neutral-700" : ""}`}
-        >
-          Songs
-        </button>
-        <button
-          onClick={() => setActiveTab("chat")}
-          className={`w-full py-3 flex items-center px-5 justify-center ${activeTab === "chat" ? "bg-neutral-700" : ""}`}
-        >
-          Chat
-        </button>
+
+      <div
+        className="flex fixed top-5 my-2 z-20 w-[90%] max-w-xl overflow-hidden bg-black rounded-full justify-evenly items-center"
+        role="tablist"
+        aria-label="Room sections"
+      >
+        {(["songs", "chat"] as const).map((tab) => (
+          <button
+            key={tab}
+            role="tab"
+            aria-selected={activeTab === tab}
+            aria-controls={`room-panel-${tab}`}
+            onClick={() => setActiveTab(tab)}
+            className={`w-full py-3 flex items-center px-5 justify-center capitalize focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-green-500 ${
+              activeTab === tab ? "bg-neutral-700" : ""
+            }`}
+          >
+            {tab}
+          </button>
+        ))}
       </div>
+
       <div className="flex flex-col pt-[8vh] w-full h-full">
         {activeTab === "songs" && (
-          <div className="flex flex-col w-full px-5">
+          <div
+            id="room-panel-songs"
+            role="tabpanel"
+            className="flex flex-col w-full px-5"
+          >
             <label htmlFor="room-song-search" className="sr-only">
               Search for songs
             </label>
             <input
               id="room-song-search"
-              className="flex w-full rounded-md bg-neutral-700 border border-transparent px-3 py-3 text-sm placeholder:text-neutral-400 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 mb-10"
+              className="flex w-full rounded-md bg-neutral-700 border border-transparent px-3 py-3 text-sm placeholder:text-neutral-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 mb-10"
               placeholder="Search for songs"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -130,7 +144,9 @@ const Room = () => {
           </div>
         )}
         {activeTab === "chat" && (
-          <Chat send={send} subscribe={subscribe} />
+          <div id="room-panel-chat" role="tabpanel" className="h-full w-full">
+            <Chat messages={messages} sendChat={sendChat} />
+          </div>
         )}
       </div>
     </div>
