@@ -77,6 +77,9 @@ const PlaylistModal = () => {
       // Insert a new playlist into the 'playlists' table.
       const { error } = await supabaseClient.from("playlists").insert({
         user_id: user.id,
+        // Membership lives in playlist_songs now. This column is still
+        // written so migration 6 stays rollback-safe; drop it together with
+        // the column in the follow-up migration.
         song_ids: [],
         name: fields.data.name,
         desc: fields.data.desc,

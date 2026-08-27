@@ -42,7 +42,7 @@ const PlaylistPage = async ({ params }: PlaylistPageProps) => {
     notFound();
   }
 
-  const songs = await getPlaylistSongs(playlist.song_ids ?? []);
+  const songs = await getPlaylistSongs(playlist.id);
 
   const imageUrl = playlist.image_path
     ? supabase.storage.from("images").getPublicUrl(playlist.image_path).data.publicUrl

@@ -102,6 +102,40 @@ export interface Database {
           },
         ];
       };
+      playlist_songs: {
+        Row: {
+          playlist_id: number;
+          song_id: number;
+          position: number;
+          added_at: string;
+        };
+        Insert: {
+          playlist_id: number;
+          song_id: number;
+          position?: number;
+          added_at?: string;
+        };
+        Update: {
+          playlist_id?: number;
+          song_id?: number;
+          position?: number;
+          added_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "playlist_songs_playlist_id_fkey";
+            columns: ["playlist_id"];
+            referencedRelation: "playlists";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "playlist_songs_song_id_fkey";
+            columns: ["song_id"];
+            referencedRelation: "songs";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       playlists: {
         Row: {
           id: number;

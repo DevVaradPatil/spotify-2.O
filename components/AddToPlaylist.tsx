@@ -3,6 +3,7 @@ import { Playlist } from "@/types";
 import { useSupabaseClient } from "@/hooks/useSupabase";
 import Image from "next/image";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 import {
   AiOutlineCheck,
@@ -18,28 +19,37 @@ interface AddToPlaylistProps {
 
 const AddToPlaylist: React.FC<AddToPlaylistProps> = ({ songId }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [playlists, setPlaylists] = useState<Playlist[]>([]); // Assuming playlists is an array of user playlists
+  const [playlists, setPlaylists] = useState<Playlist[]>([]);
+  // Which playlists already contain this song. Read from playlist_songs on
+  // open rather than inferred from an array column on each playlist row.
+  const [membership, setMembership] = useState<Set<number>>(new Set());
   const supabaseClient = useSupabaseClient();
   const { user } = useUser();
+  const router = useRouter();
 
   const openModal = async () => {
     setIsModalOpen(true);
-    const fetchPlaylists = async () => {
-      try {
-        const { data, error } = await supabaseClient
-          .from("playlists")
-          .select("*")
-          .eq("user_id", user!.id);
-        if (error) {
-          toast.error(error.message);
-        } else if (data && Array.isArray(data)) {
-          setPlaylists(data);
-        }
-      } catch (error) {
-        toast.error("Error Fetching Playlists");
+    if (!user || songId === undefined) return;
+
+    try {
+      const [{ data: playlistData, error }, { data: memberRows }] = await Promise.all([
+        supabaseClient.from("playlists").select("*").eq("user_id", user.id),
+        supabaseClient
+          .from("playlist_songs")
+          .select("playlist_id")
+          .eq("song_id", songId),
+      ]);
+
+      if (error) {
+        toast.error(error.message);
+        return;
       }
-    };
-    fetchPlaylists();
+
+      setPlaylists(playlistData ?? []);
+      setMembership(new Set((memberRows ?? []).map((row) => row.playlist_id)));
+    } catch {
+      toast.error("Error Fetching Playlists");
+    }
   };
 
   const closeModal = () => {
@@ -47,53 +57,70 @@ const AddToPlaylist: React.FC<AddToPlaylistProps> = ({ songId }) => {
   };
 
   const handleAddToPlaylist = async (playlistId: number) => {
+    if (songId === undefined) return;
+
     try {
-      // Fetch the playlist from the 'playlists' table
-      const { data: playlistsData, error } = await supabaseClient
-        .from("playlists")
-        .select("*")
-        .eq("id", playlistId);
+      // A single targeted row per membership change, instead of reading the
+      // whole song_ids array, splicing it and writing it back. That
+      // read-modify-write meant two concurrent edits silently discarded one
+      // another, and it was also where the string/number id mismatch made
+      // indexOf never match.
+      const { data: existing, error: lookupError } = await supabaseClient
+        .from("playlist_songs")
+        .select("song_id")
+        .eq("playlist_id", playlistId)
+        .eq("song_id", songId)
+        .maybeSingle();
 
-      if (error) {
-        toast.error("Error fetching playlist");
+      if (lookupError) {
+        toast.error(lookupError.message);
         return;
       }
 
-      if (playlistsData.length === 0) {
-        toast.error("Playlist not found");
-        return;
-      }
+      if (existing) {
+        const { error } = await supabaseClient
+          .from("playlist_songs")
+          .delete()
+          .eq("playlist_id", playlistId)
+          .eq("song_id", songId);
 
-      const playlist = playlistsData[0];
-      let songsIds = playlist.song_ids || [];
-
-      // Check if the songId is already in the playlist
-      if (songId === undefined) return;
-      const songIndex = songsIds.indexOf(songId);
-
-      if (songIndex !== -1) {
-        // Song is already in the playlist, so remove it
-        songsIds.splice(songIndex, 1);
+        if (error) {
+          toast.error(error.message);
+          return;
+        }
         toast.success("Song removed from playlist");
       } else {
-        // Song is not in the playlist, add it
-        songsIds.push(songId);
+        // Append: one past the current highest position.
+        const { data: last } = await supabaseClient
+          .from("playlist_songs")
+          .select("position")
+          .eq("playlist_id", playlistId)
+          .order("position", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        const { error } = await supabaseClient.from("playlist_songs").insert({
+          playlist_id: playlistId,
+          song_id: songId,
+          position: (last?.position ?? -1) + 1,
+        });
+
+        if (error) {
+          toast.error(error.message);
+          return;
+        }
         toast.success("Song added to playlist");
       }
 
-      // Update the playlist with the modified 'songs_ids' array
-      const { error: updateError } = await supabaseClient
-        .from("playlists")
-        .update({ song_ids: songsIds })
-        .eq("id", playlistId);
-
+      setMembership((prev) => {
+        const next = new Set(prev);
+        if (existing) next.delete(playlistId);
+        else next.add(playlistId);
+        return next;
+      });
       setIsModalOpen(false);
-
-      if (updateError) {
-        toast.error("Error updating playlist" + updateError.message);
-        setIsModalOpen(false);
-      }
-    } catch (error) {
+      router.refresh();
+    } catch {
       toast.error("An error occurred");
       setIsModalOpen(false);
     }
@@ -121,7 +148,7 @@ const AddToPlaylist: React.FC<AddToPlaylistProps> = ({ songId }) => {
                   const { data: imageData } = supabaseClient.storage
                     .from("images")
                     .getPublicUrl(playlist.image_path ?? "");
-                  let isAdded = playlist.song_ids.includes(songId!);
+                  const isAdded = membership.has(playlist.id);
 
                   return (
                     <li
