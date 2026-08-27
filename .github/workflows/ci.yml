@@ -49,12 +49,6 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
       - run: npm ci
-      # Reports high/critical advisories in runtime dependencies.
-      #
-      # Non-blocking for now, deliberately: the only two that remain are
-      # `next` and its bundled `postcss`, and neither has a fix below Next
-      # 16.x, which is a semver-major upgrade tracked as CQ-12 in
-      # IMPROVEMENT_PLAN.md. Flip continue-on-error off the moment that
-      # upgrade lands, so the gate starts biting again.
+      # Blocking again as of the Next 16 upgrade: runtime advisories are now
+      # zero, so any new high or critical fails the build.
       - run: npm audit --omit=dev --audit-level=high
-        continue-on-error: true

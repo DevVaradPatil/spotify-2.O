@@ -4,16 +4,17 @@ import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
 const useGetSongById = (id?: number) => {
-  const [isLoading, setIsLoading] = useState(false);
-  const [song, setSong] = useState<Song | undefined>(undefined);
+  const [loaded, setLoaded] = useState<{ id?: number; song?: Song }>({});
   const { supabaseClient } = useSessionContext();
 
-  useEffect(() => {
-    if (!id) {
-      return;
-    }
+  // Derived rather than stored: no setState in the effect body just to flip a
+  // loading flag on.
+  const isLoading = id !== undefined && loaded.id !== id;
 
-    setIsLoading(true);
+  useEffect(() => {
+    if (!id) return;
+
+    let cancelled = false;
 
     const fetchSong = async () => {
       const { data, error } = await supabaseClient
@@ -22,24 +23,27 @@ const useGetSongById = (id?: number) => {
         .eq("id", id)
         .single();
 
+      if (cancelled) return;
+
       if (error) {
-        setIsLoading(false);
-        return toast.error(error.message);
+        toast.error(error.message);
+        setLoaded({ id, song: undefined });
+        return;
       }
 
-      setSong(data as Song);
-      setIsLoading(false);
+      setLoaded({ id, song: data as Song });
     };
 
     fetchSong();
+
+    return () => {
+      cancelled = true;
+    };
   }, [id, supabaseClient]);
 
   return useMemo(
-    () => ({
-      isLoading,
-      song,
-    }),
-    [isLoading, song]
+    () => ({ isLoading, song: loaded.id === id ? loaded.song : undefined }),
+    [isLoading, loaded, id]
   );
 };
 

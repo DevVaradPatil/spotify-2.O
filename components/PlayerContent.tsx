@@ -29,6 +29,43 @@ function formatTime(seconds: number) {
   )}`;
 }
 
+interface ProgressBarProps {
+  position: number;
+  duration: number;
+  onSeekClick: (e: React.MouseEvent<HTMLDivElement>) => void;
+  onSeekKeyDown: (e: React.KeyboardEvent<HTMLDivElement>) => void;
+}
+
+/**
+ * Module scope, not inside PlayerContent: a component declared in a render
+ * body is a new type on every render, so React remounts it and its DOM each
+ * time rather than updating it.
+ */
+const ProgressBar: React.FC<ProgressBarProps> = ({
+  position,
+  duration,
+  onSeekClick,
+  onSeekKeyDown,
+}) => (
+  <div
+    role="slider"
+    tabIndex={0}
+    aria-label="Seek"
+    aria-valuemin={0}
+    aria-valuemax={Math.floor(duration)}
+    aria-valuenow={Math.floor(position)}
+    aria-valuetext={`${formatTime(position)} of ${formatTime(duration)}`}
+    onClick={onSeekClick}
+    onKeyDown={onSeekKeyDown}
+    className="bg-neutral-300 h-1 rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
+  >
+    <div
+      className="bg-green-500 h-1 rounded-lg"
+      style={{ width: `${duration > 0 ? (position / duration) * 100 : 0}%` }}
+    />
+  </div>
+);
+
 const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
   // Selectors, not the whole store: a volume change should not re-render
   // anything that only cares about the active track.
@@ -64,6 +101,9 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
 
   const [play, { pause, sound }] = useSound(songUrl, {
     volume,
+    onload: function (this: { duration: () => number }) {
+      setDuration(this.duration?.() ?? 0);
+    },
     onplay: () => setIsPlaying(true),
     onend: () => {
       setIsPlaying(false);
@@ -72,10 +112,6 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
     onpause: () => setIsPlaying(false),
     format: ["mp3"],
   });
-
-  useEffect(() => {
-    if (sound) setDuration(sound.duration() ?? 0);
-  }, [sound]);
 
   useEffect(() => {
     if (!sound) return;
@@ -131,28 +167,6 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
       seekTo(duration);
     }
   };
-
-  const progressPercent = duration > 0 ? (position / duration) * 100 : 0;
-
-  const ProgressBar = ({ className }: { className?: string }) => (
-    <div
-      role="slider"
-      tabIndex={0}
-      aria-label="Seek"
-      aria-valuemin={0}
-      aria-valuemax={Math.floor(duration)}
-      aria-valuenow={Math.floor(position)}
-      aria-valuetext={`${formatTime(position)} of ${formatTime(duration)}`}
-      onClick={handleProgressBarClick}
-      onKeyDown={handleProgressKeyDown}
-      className={`bg-neutral-300 h-1 rounded-lg cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500 ${className ?? ""}`}
-    >
-      <div
-        className="bg-green-500 h-1 rounded-lg"
-        style={{ width: `${progressPercent}%` }}
-      />
-    </div>
-  );
 
   return (
     <div className="grid grid-cols-2 md:grid-cols-3 h-full">
@@ -217,7 +231,12 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
         <div className="hidden md:flex w-full justify-center items-center gap-x-3">
           <p className="text-sm text-neutral-300 w-10">{formatTime(position)}</p>
           <div className="w-full">
-            <ProgressBar />
+            <ProgressBar
+              position={position}
+              duration={duration}
+              onSeekClick={handleProgressBarClick}
+              onSeekKeyDown={handleProgressKeyDown}
+            />
           </div>
           <p className="text-sm text-neutral-300 w-10">{formatTime(duration)}</p>
         </div>
@@ -239,7 +258,12 @@ const PlayerContent: React.FC<PlayerContentProps> = ({ song, songUrl }) => {
 
       <div className="flex md:hidden w-full justify-center items-center absolute bottom-0 left-0">
         <div className="w-full">
-          <ProgressBar />
+          <ProgressBar
+            position={position}
+            duration={duration}
+            onSeekClick={handleProgressBarClick}
+            onSeekKeyDown={handleProgressKeyDown}
+          />
         </div>
       </div>
     </div>

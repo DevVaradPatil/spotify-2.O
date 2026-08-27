@@ -30,24 +30,30 @@ export const MyUserContextProvider = (props: Props) => {
   const user = session?.user ?? null;
   const accessToken = session?.access_token ?? null;
 
-  const [isLoadingData, setIsLoadingData] = useState(false);
-  const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const [loaded, setLoaded] = useState<{
+    userId?: string;
+    details: UserDetails | null;
+    subscription: Subscription | null;
+  }>({ details: null, subscription: null });
+
+  // All three are derived from whether the loaded data belongs to the current
+  // user, so neither signing out nor starting a fetch needs a synchronous
+  // setState inside the effect body.
+  const isCurrent = !!user && loaded.userId === user.id;
+  const userDetails = isCurrent ? loaded.details : null;
+  const subscription = isCurrent ? loaded.subscription : null;
+  const isLoadingData = !!user && !isCurrent;
 
   useEffect(() => {
-    if (!user) {
-      setUserDetails(null);
-      setSubscription(null);
-      return;
-    }
+    const userId = user?.id;
+    if (!userId) return;
 
     let cancelled = false;
-    setIsLoadingData(true);
 
     // maybeSingle() rather than single(): a user with no profile row or no
     // active subscription is an ordinary state, not an error.
     Promise.allSettled([
-      supabase.from("users").select("*").eq("id", user.id).maybeSingle(),
+      supabase.from("users").select("*").eq("id", userId).maybeSingle(),
       supabase
         .from("subscriptions")
         .select("*, prices(*, products(*))")
@@ -58,19 +64,23 @@ export const MyUserContextProvider = (props: Props) => {
 
       const [detailsResult, subscriptionResult] = results;
 
-      if (detailsResult.status === "fulfilled") {
-        setUserDetails((detailsResult.value.data as UserDetails) ?? null);
-      }
-      if (subscriptionResult.status === "fulfilled") {
-        setSubscription((subscriptionResult.value.data as Subscription) ?? null);
-      }
-      setIsLoadingData(false);
+      setLoaded({
+        userId,
+        details:
+          detailsResult.status === "fulfilled"
+            ? ((detailsResult.value.data as UserDetails) ?? null)
+            : null,
+        subscription:
+          subscriptionResult.status === "fulfilled"
+            ? ((subscriptionResult.value.data as Subscription) ?? null)
+            : null,
+      });
     });
 
     return () => {
       cancelled = true;
     };
-  }, [user, supabase]);
+  }, [user?.id, supabase]);
 
   const value = useMemo(
     () => ({

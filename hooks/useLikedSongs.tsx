@@ -13,13 +13,20 @@ import toast from "react-hot-toast";
 import { useUser } from "./useUser";
 
 interface LikedSongsContextValue {
-  likedIds: Set<number>;
+  likedIds: ReadonlySet<number>;
   isLiked: (songId: number) => boolean;
   toggleLike: (songId: number) => Promise<void>;
   isLoading: boolean;
 }
 
+const EMPTY: ReadonlySet<number> = new Set<number>();
+
 const LikedSongsContext = createContext<LikedSongsContextValue | undefined>(undefined);
+
+interface LoadedState {
+  userId?: string;
+  ids: Set<number>;
+}
 
 /**
  * One query for the whole page instead of one per row.
@@ -27,34 +34,37 @@ const LikedSongsContext = createContext<LikedSongsContextValue | undefined>(unde
  * LikeButton used to run its own `liked_songs` select on mount, so a list of
  * 50 songs fired 50 requests. The set of liked ids is fetched once here and
  * every button reads from it.
+ *
+ * State is keyed by user id so both `likedIds` and `isLoading` are derived
+ * during render — signing in or out needs no setState in an effect body.
  */
 export const LikedSongsProvider = ({ children }: { children: React.ReactNode }) => {
   const supabase = useSupabaseClient();
   const { user } = useUser();
-  const [likedIds, setLikedIds] = useState<Set<number>>(new Set());
-  const [isLoading, setIsLoading] = useState(false);
+  const [loaded, setLoaded] = useState<LoadedState>({ ids: new Set() });
+
+  const isCurrent = !!user?.id && loaded.userId === user.id;
+  const likedIds = isCurrent ? loaded.ids : EMPTY;
+  const isLoading = !!user?.id && !isCurrent;
 
   useEffect(() => {
-    if (!user?.id) {
-      setLikedIds(new Set());
-      return;
-    }
+    const userId = user?.id;
+    if (!userId) return;
 
     let cancelled = false;
-    setIsLoading(true);
 
     (async () => {
       const { data, error } = await supabase
         .from("liked_songs")
         .select("song_id")
-        .eq("user_id", user.id);
+        .eq("user_id", userId);
 
-      if (!cancelled) {
-        if (!error && data) {
-          setLikedIds(new Set(data.map((row) => row.song_id)));
-        }
-        setIsLoading(false);
-      }
+      if (cancelled) return;
+
+      setLoaded({
+        userId,
+        ids: new Set(error || !data ? [] : data.map((row) => row.song_id)),
+      });
     })();
 
     return () => {
@@ -66,35 +76,34 @@ export const LikedSongsProvider = ({ children }: { children: React.ReactNode }) 
 
   const toggleLike = useCallback(
     async (songId: number) => {
-      if (!user?.id) return;
-      const key = songId;
-      const currentlyLiked = likedIds.has(key);
+      const userId = user?.id;
+      if (!userId) return;
+
+      const currentlyLiked = likedIds.has(songId);
 
       // Optimistic, reverted if the write fails.
-      setLikedIds((prev) => {
-        const next = new Set(prev);
-        if (currentlyLiked) next.delete(key);
-        else next.add(key);
-        return next;
-      });
+      const applyLocal = (liked: boolean) =>
+        setLoaded((prev) => {
+          const ids = new Set(prev.ids);
+          if (liked) ids.add(songId);
+          else ids.delete(songId);
+          return { userId, ids };
+        });
+
+      applyLocal(!currentlyLiked);
 
       const { error } = currentlyLiked
         ? await supabase
             .from("liked_songs")
             .delete()
-            .eq("user_id", user.id)
+            .eq("user_id", userId)
             .eq("song_id", songId)
         : await supabase
             .from("liked_songs")
-            .insert({ song_id: songId, user_id: user.id });
+            .insert({ song_id: songId, user_id: userId });
 
       if (error) {
-        setLikedIds((prev) => {
-          const next = new Set(prev);
-          if (currentlyLiked) next.add(key);
-          else next.delete(key);
-          return next;
-        });
+        applyLocal(currentlyLiked);
         toast.error(error.message);
         return;
       }

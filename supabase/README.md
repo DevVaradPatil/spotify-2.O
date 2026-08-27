@@ -12,7 +12,7 @@ have applied here as you go.
 | 2   | `20260827000002_add_missing_indexes.sql`            | ✅ **Applied** | Ten indexes + `pg_trgm`                       |
 | 3   | `20260827000003_messages_identity_and_realtime.sql` | ✅ **Applied** | Room chat identity + Realtime publication     |
 | 4   | `20260827000004_songs_not_null.sql`                 | ✅ **Applied** | Verified zero backfill needed                 |
-| 5   | `20260827000005_subscription_status_paused.sql`     | ⬜ Not applied | Adds Stripe's `paused` status to the enum     |
+| 5   | `20260827000005_subscription_status_paused.sql`     | ✅ **Applied** | Adds Stripe's `paused` status to the enum     |
 
 ## Known gotchas
 
