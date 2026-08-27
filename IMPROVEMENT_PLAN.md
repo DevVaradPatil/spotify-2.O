@@ -443,19 +443,23 @@ Commits `c12e48d` · `bf6ac9f` · `668e1f4` · `572ad0a` · `8b27f1b` on `phase-
 
 **Regression introduced:** `@supabase/ssr` adds roughly 70 kB of first-load JS per route versus the auth helpers it replaced. Tracked under PERF-10.
 
-### Phase 3 — UX & Accessibility (week 4–5)
+### Phase 3 — UX & Accessibility (week 4–5) — ⏳ MOSTLY COMPLETE
 
-| Item                                                                           | Effort |
-| ------------------------------------------------------------------------------ | ------ |
-| Player accessibility — real buttons, keyboard seeking (UX-1)                   | M      |
-| Focus rings, accessible names, alt text, contrast (UX-2 → UX-5)                | S each |
-| Mobile player controls + now-playing sheet (UX-6)                              | M      |
-| Functional error boundaries + skeleton loading (UX-7, UX-8, CQ-8)              | M      |
-| Empty-state copy and design (UX-9)                                             | S      |
-| Visual refresh — retire the rainbow gradient, add design tokens (UX-10, UX-11) | M      |
-| Keyboard shortcuts (UX-12)                                                     | S      |
-| axe + Lighthouse to ≥95 (UX-13)                                                | M      |
-| Full-text / trigram search (DB-14)                                             | M      |
+Commit `7a24f62`, plus player work that landed in `a016599`.
+
+| Item                                                            | Effort | Status                                                                                   |
+| --------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------------- |
+| Player accessibility — real buttons, keyboard seeking (UX-1)    | M      | ✅ `a016599` — transport is buttons, progress bar is `role="slider"` with arrow/Home/End |
+| Focus rings, accessible names, alt text, contrast (UX-2 → UX-5) | S each | ✅ `7a24f62`                                                                             |
+| Mobile player controls (UX-6)                                   | M      | ◐ prev/next/seek/mute now on mobile. Full-screen now-playing sheet not built             |
+| Functional error boundaries + skeletons (UX-7, UX-8, CQ-8)      | M      | ✅ `b460600` + `7a24f62`                                                                 |
+| Empty-state copy (UX-9)                                         | S      | ✅ `b460600`                                                                             |
+| Retire the animated gradient; design tokens (UX-10, UX-11)      | M      | ✅ `7a24f62` — plus a `prefers-reduced-motion` block that was missing entirely           |
+| Keyboard shortcuts (UX-12)                                      | S      | ✅ `7a24f62` — space, arrows, M/N/P                                                      |
+| axe + Lighthouse to ≥95 (UX-13)                                 | M      | ◐ Verified against the live a11y tree; no automated axe/Lighthouse run yet               |
+| Full-text / trigram search (DB-14)                              | M      | ◐ `pg_trgm` GIN index applied, which `ilike '%term%'` uses. `tsvector` ranking not done  |
+
+**Caught only by inspecting the live accessibility tree:** song tiles and media rows were clickable `motion.div`s — invisible to keyboards and announcing nothing. `jsx-a11y` does not inspect `motion.*` elements, so lint had been passing clean over them the whole time. Worth remembering that a green lint run is not an accessibility check.
 
 ### Phase 4 — Features & Architecture (week 5+)
 
