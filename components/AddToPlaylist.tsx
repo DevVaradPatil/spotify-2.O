@@ -100,12 +100,13 @@ const AddToPlaylist: React.FC<AddToPlaylistProps> = ({ songId }) => {
 
   return (
     <>
-      <div
-        className="mr-2 hover:text-neutral-400 cursor-pointer"
+      <button
+        className="mr-2 hover:text-neutral-400 cursor-pointer rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-green-500"
         onClick={openModal}
+        aria-label="Add to playlist"
       >
-        <MdPlaylistAdd size={30} />
-      </div>
+        <MdPlaylistAdd size={30} aria-hidden="true" />
+      </button>
 
       {isModalOpen && (
         <div className="centered-modal">

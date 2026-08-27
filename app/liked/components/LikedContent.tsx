@@ -26,26 +26,23 @@ const LikedContent: React.FC<LikedContentProps> = ({ songs }) => {
     }
   }, [isLoading, user, router]);
 
-  useEffect(() => {
-    onPlay(songs[0].id)
-  }, [])
-
   if (songs.length === 0) {
     return (
       <div className="flex flex-col gap-y-2 w-full px-6 text-neutral-400">
-        No Liked Songs
+        You haven&apos;t liked any songs yet.
       </div>
     );
   }
   return (
     <div className="flex flex-col gap-y-2 w-full p-6">
       <div className="px-3 md:px-6 py-3 flex w-full justify-start items-center">
-        <div
+        <button
           onClick={handlePlaylist}
-          className="rounded-full flex items-center cursor-pointer bg-green-500 p-4 shadow-lg transition hover:bg-green-600 hover:scale-105"
+          aria-label="Play all songs"
+          className="rounded-full flex items-center cursor-pointer bg-green-500 p-4 shadow-lg transition hover:bg-green-600 hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
         >
-          <FaPlay className="text-black" />
-        </div>
+          <FaPlay className="text-black" aria-hidden="true" />
+        </button>
         <p className="ml-3 text-lg font-semibold">Listen to this playlist</p>
       </div>
       {songs.map((song, index) => (
