@@ -104,7 +104,7 @@ export interface Database {
       };
       playlists: {
         Row: {
-          id: string;
+          id: number;
           user_id: string;
           song_ids: number[];
           name: string;
@@ -113,7 +113,7 @@ export interface Database {
           created_at: string;
         };
         Insert: {
-          id?: string;
+          id?: number;
           user_id: string;
           song_ids?: number[];
           name: string;
@@ -122,7 +122,7 @@ export interface Database {
           created_at?: string;
         };
         Update: {
-          id?: string;
+          id?: number;
           user_id?: string;
           song_ids?: number[];
           name?: string;

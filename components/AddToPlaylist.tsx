@@ -46,7 +46,7 @@ const AddToPlaylist: React.FC<AddToPlaylistProps> = ({ songId }) => {
     setIsModalOpen(false);
   };
 
-  const handleAddToPlaylist = async (playlistId: string) => {
+  const handleAddToPlaylist = async (playlistId: number) => {
     try {
       // Fetch the playlist from the 'playlists' table
       const { data: playlistsData, error } = await supabaseClient

@@ -29,7 +29,7 @@ const PlaylistPage = () => {
         const { data, error } = await supabaseClient
           .from("playlists")
           .select("*")
-          .eq("id", String(id));
+          .eq("id", Number(id));
         if (error) {
           toast.error(error.message);
         } else if (data) {
