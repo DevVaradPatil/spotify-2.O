@@ -134,6 +134,7 @@ const AddToPlaylist: React.FC<AddToPlaylistProps> = ({ songId }) => {
                             src={imageData.publicUrl}
                             alt="playlist"
                             fill
+                            sizes="48px"
                             className="object-cover"
                           />
                         </div>

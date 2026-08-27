@@ -14,6 +14,7 @@ const Library = async () => {
             <div className="relative h-32 w-32 lg:h-44 lg:w-44 rounded-md bg-gradient-to-br from-pink-700 to-neutral-200 overflow-hidden">
               <Image
                 fill
+                sizes="(max-width: 1024px) 8rem, 11rem"
                 src="/images/music.png"
                 alt="Playlist"
                 className="object-cover"

@@ -27,11 +27,15 @@ const securityHeaders = [
     key: "Content-Security-Policy-Report-Only",
     value: [
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' https://js.stripe.com",
+      // va.vercel-scripts.com serves @vercel/analytics and speed-insights;
+      // the report-only policy was blocking both. 'unsafe-eval' is not listed
+      // on purpose — it is only needed by webpack in dev, and the report-only
+      // violations for it in development are expected.
+      "script-src 'self' 'unsafe-inline' https://js.stripe.com https://va.vercel-scripts.com",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: blob: https:",
       "media-src 'self' blob: https:",
-      `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://api.stripe.com`,
+      `connect-src 'self' https://${supabaseHost} wss://${supabaseHost} https://api.stripe.com https://vitals.vercel-insights.com`,
       "frame-src https://js.stripe.com https://hooks.stripe.com",
       "object-src 'none'",
       "base-uri 'self'",
