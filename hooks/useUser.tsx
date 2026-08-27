@@ -1,10 +1,9 @@
-import { useEffect, useState, createContext, useContext } from "react";
-import {
-  useUser as useSupaUser,
-  useSessionContext,
-  User,
-} from "@supabase/auth-helpers-react";
+"use client";
 
+import { useEffect, useState, createContext, useContext, useMemo } from "react";
+import type { User } from "@supabase/supabase-js";
+
+import { useSessionContext } from "./useSupabase";
 import { UserDetails, Subscription } from "@/types";
 
 type UserContextType = {
@@ -27,49 +26,62 @@ export const MyUserContextProvider = (props: Props) => {
     isLoading: isLoadingUser,
     supabaseClient: supabase,
   } = useSessionContext();
-  const user = useSupaUser();
+
+  const user = session?.user ?? null;
   const accessToken = session?.access_token ?? null;
-  const [isLoadingData, setIsloadingData] = useState(false);
+
+  const [isLoadingData, setIsLoadingData] = useState(false);
   const [userDetails, setUserDetails] = useState<UserDetails | null>(null);
   const [subscription, setSubscription] = useState<Subscription | null>(null);
 
-  const getUserDetails = () => supabase.from("users").select("*").single();
-
-  const getSubscription = () =>
-    supabase
-      .from("subscriptions")
-      .select("*, prices(*, products(*))")
-      .in("status", ["trialing", "active"])
-      .single();
-
   useEffect(() => {
-    if (user && !isLoadingData && !userDetails && !subscription) {
-      setIsloadingData(true);
-      Promise.allSettled([getUserDetails(), getSubscription()]).then((results) => {
-        const userDetailsPromise = results[0];
-        const subscriptionPromise = results[1];
-
-        if (userDetailsPromise.status === "fulfilled")
-          setUserDetails(userDetailsPromise.value.data as UserDetails);
-
-        if (subscriptionPromise.status === "fulfilled")
-          setSubscription(subscriptionPromise.value.data as Subscription);
-
-        setIsloadingData(false);
-      });
-    } else if (!user && !isLoadingUser && !isLoadingData) {
+    if (!user) {
       setUserDetails(null);
       setSubscription(null);
+      return;
     }
-  }, [user, isLoadingUser]);
 
-  const value = {
-    accessToken,
-    user,
-    userDetails,
-    isLoading: isLoadingUser || isLoadingData,
-    subscription,
-  };
+    let cancelled = false;
+    setIsLoadingData(true);
+
+    // maybeSingle() rather than single(): a user with no profile row or no
+    // active subscription is an ordinary state, not an error.
+    Promise.allSettled([
+      supabase.from("users").select("*").eq("id", user.id).maybeSingle(),
+      supabase
+        .from("subscriptions")
+        .select("*, prices(*, products(*))")
+        .in("status", ["trialing", "active"])
+        .maybeSingle(),
+    ]).then((results) => {
+      if (cancelled) return;
+
+      const [detailsResult, subscriptionResult] = results;
+
+      if (detailsResult.status === "fulfilled") {
+        setUserDetails((detailsResult.value.data as UserDetails) ?? null);
+      }
+      if (subscriptionResult.status === "fulfilled") {
+        setSubscription((subscriptionResult.value.data as Subscription) ?? null);
+      }
+      setIsLoadingData(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user, supabase]);
+
+  const value = useMemo(
+    () => ({
+      accessToken,
+      user,
+      userDetails,
+      isLoading: isLoadingUser || isLoadingData,
+      subscription,
+    }),
+    [accessToken, user, userDetails, isLoadingUser, isLoadingData, subscription]
+  );
 
   return <UserContext.Provider value={value} {...props} />;
 };
