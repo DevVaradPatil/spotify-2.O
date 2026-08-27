@@ -398,23 +398,26 @@ Executed on branch `phase-0-security` (3 commits, not pushed):
 | `npm uninstall react-router-dom socket.io-client` (SEC-9) | S | ✅ Done — `dceb2a7`. audit 25 → 20, critical 2 → 1 |
 | Decide on git history rewrite (§6 Q1) | S | ⚠️ **Your decision.** Repo confirmed **PUBLIC**, exposed **604 days** — see §6 Q1 |
 
-### Phase 1 — Critical Security & Data Integrity (week 1–2)
+### Phase 1 — Critical Security & Data Integrity (week 1–2) — ⏳ IN PROGRESS
 
-| Item | Effort |
-| --- | --- |
-| Adopt Supabase migrations; capture current schema (DB-1) | M |
-| Audit + document every RLS policy (DB-2) | M |
-| Write owner-scoped RLS policies (DB-3) | M |
-| Move playlist authorization server-side (SEC-5) | M |
-| Authenticate the WebSocket layer; stop trusting client identity (SEC-3) | M |
-| Scope WS broadcasts per room (SEC-4) | S |
-| Auth guard on the checkout route (SEC-8) | S |
-| Zod validation at all trust boundaries (SEC-6) | M |
-| Upload size/MIME/key-sanitization limits (SEC-7) | M |
-| `npm audit fix` + upgrade `ws`/`stripe`/`supabase` CLI (SEC-10) | M |
-| Security headers + rate limiting (SEC-11, SEC-12) | S |
-| Regenerate `types_db.ts` as UTF-8 (DB-4) | S |
-| Add all missing indexes (DB-7) | S |
+Commits `c12e48d` · `bf6ac9f` · `668e1f4` · `572ad0a` · `8b27f1b` on `phase-0-security`.
+
+| Item | Effort | Status |
+| --- | --- | --- |
+| Adopt Supabase migrations; capture current schema (DB-1) | M | ◐ `supabase/migrations/` created. `supabase db pull` still needs running against the live project |
+| Audit + document every RLS policy (DB-2) | M | 🔴 **BLOCKED — needs you.** `pg_policies` is not reachable over REST with any key. Run `supabase/audit/inspect_schema.sql` |
+| Write owner-scoped RLS policies (DB-3) | M | ◐ Written, **not applied** — `20260827000001`. Verify against DB-2 output first |
+| Move playlist authorization server-side (SEC-5) | M | ✅ `668e1f4` |
+| Authenticate the WebSocket layer; stop trusting client identity (SEC-3) | M | ✅ `bf6ac9f` |
+| Scope WS broadcasts per room (SEC-4) | S | ✅ `bf6ac9f` |
+| Auth guard on the checkout route (SEC-8) | S | ✅ `c12e48d` — plus server-side price validation |
+| Zod validation at all trust boundaries (SEC-6) | M | ✅ `c12e48d`, `572ad0a` |
+| Upload size/MIME/key-sanitization limits (SEC-7) | M | ✅ `572ad0a` |
+| `npm audit fix` + upgrade `ws`/`stripe`/`supabase` CLI (SEC-10) | M | ◐ `uniqid` removed. `ws`/`stripe`/`supabase` upgrades outstanding |
+| Security headers (SEC-11) | S | ✅ `572ad0a` — CSP is report-only pending tuning |
+| Rate limiting (SEC-12) | S | ⬜ Not started — needs a decision on Upstash vs. alternative |
+| Regenerate `types_db.ts` as UTF-8 (DB-4) | S | ⬜ Blocked on DB-2 output / `supabase gen types` |
+| Add all missing indexes (DB-7) | S | ◐ Written, **not applied** — `20260827000002` |
 
 ### Phase 2 — Stability, Correctness & Performance (week 2–4)
 
