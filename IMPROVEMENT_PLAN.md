@@ -461,25 +461,27 @@ Commit `7a24f62`, plus player work that landed in `a016599`.
 
 **Caught only by inspecting the live accessibility tree:** song tiles and media rows were clickable `motion.div`s — invisible to keyboards and announcing nothing. `jsx-a11y` does not inspect `motion.*` elements, so lint had been passing clean over them the whole time. Worth remembering that a green lint run is not an accessibility check.
 
-### Phase 4 — Features & Architecture (week 5+)
+### Phase 4 — Features & Architecture (week 5+) — ⏳ IN PROGRESS
 
-| Item                                                                | Effort |
-| ------------------------------------------------------------------- | ------ |
-| `playlist_songs` join table migration (DB-8)                        | L      |
-| Rooms rebuilt on Supabase Realtime (DB-11) — or hardened WS (DB-12) | L      |
-| Fix room sync end-to-end (FEAT-6)                                   | L      |
-| Shuffle + repeat (FEAT-9)                                           | M      |
-| Visible queue (FEAT-10)                                             | L      |
-| Media Session API + persisted player state (FEAT-11, FEAT-12)       | S      |
-| Playlist enhancements (FEAT-13)                                     | M      |
-| Recently played / history (FEAT-14)                                 | M      |
-| Artists & follows (FEAT-15)                                         | L      |
-| Search improvements (FEAT-16)                                       | M      |
-| Migrate mutations to Server Actions (CQ-7, CQ-15)                   | L      |
-| PWA / offline (FEAT-17)                                             | M      |
-| Sentry + structured logging (CQ-14)                                 | M      |
+Commits `8cd3c90`, `c52f869`.
 
----
+| Item                                                          | Effort | Status                                                                                      |
+| ------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------- |
+| `playlist_songs` join table migration (DB-8)                  | L      | ✅ `c52f869` — **migration 6 not yet applied**                                              |
+| Rooms rebuilt on Supabase Realtime (DB-11)                    | L      | ✅ Phase 2, `adac2b6`                                                                       |
+| Shuffle + repeat (FEAT-9)                                     | M      | ✅ `8cd3c90`                                                                                |
+| Visible queue (FEAT-10)                                       | L      | ✅ `8cd3c90` — view, jump, remove. Drag-reorder not built                                   |
+| Media Session API + persisted player state (FEAT-11, FEAT-12) | S      | ✅ `8cd3c90`                                                                                |
+| Test foundation — Vitest (CQ-9)                               | L      | ◐ `8cd3c90` — 29 tests over queue rules and the player store. No component or e2e tests yet |
+| Fix room sync end-to-end (FEAT-6)                             | L      | ◐ Track changes and chat sync; play/pause and position do not                               |
+| Playlist enhancements (FEAT-13)                               | M      | ⬜ Not started — `position` now exists, so drag-reorder is unblocked                        |
+| Recently played / history (FEAT-14)                           | M      | ⬜ Not started                                                                              |
+| Artists & follows (FEAT-15)                                   | L      | ⬜ Not started                                                                              |
+| Search improvements (FEAT-16)                                 | M      | ⬜ Not started                                                                              |
+| Migrate mutations to Server Actions (CQ-7, CQ-15)             | L      | ⬜ Not started                                                                              |
+| PWA / offline (FEAT-17)                                       | M      | ⬜ Not started                                                                              |
+| Sentry + structured logging (CQ-14)                           | M      | ⬜ Not started                                                                              |
+| Real caching strategy (PERF-4)                                | M      | ⬜ Not started — carried over from Phase 2                                                  |
 
 ## 5. Breaking Changes / Risks
 
