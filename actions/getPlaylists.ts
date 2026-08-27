@@ -1,6 +1,5 @@
 import { Playlist } from "@/types";
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
+import { createClient } from "@/libs/supabase/server";
 
 /**
  * Returns only the signed-in user's playlists.
@@ -11,9 +10,7 @@ import { cookies } from "next/headers";
  * playlist rows.
  */
 const getPlaylists = async (): Promise<Playlist[]> => {
-  const supabase = createServerComponentClient({
-    cookies: cookies,
-  });
+  const supabase = await createClient();
 
   const {
     data: { session },

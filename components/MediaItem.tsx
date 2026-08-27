@@ -9,7 +9,7 @@ import { slideIn } from "@/variants";
 
 interface MediaItemProps {
   data: Song;
-  onClick?: (id: string) => void;
+  onClick?: (id: number) => void;
   inPlayer?: boolean;
   index: number;
   isLeft?: boolean;

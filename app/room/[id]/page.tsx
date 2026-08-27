@@ -27,7 +27,7 @@ const Room = () => {
     useRoomChannel(roomCode);
 
   // Guards against echoing a track back out after receiving it.
-  const lastSyncedId = useRef<string | undefined>(activeId);
+  const lastSyncedId = useRef<number | undefined>(activeId);
 
   useEffect(() => {
     if (!user) authModal.onOpen();

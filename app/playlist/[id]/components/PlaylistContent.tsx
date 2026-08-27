@@ -38,7 +38,7 @@ const PlaylistContent: React.FC<PlaylistContentProps> = ({ songs }) => {
             <div key={song.id} className="flex items-center gap-x-4 w-full">
               <div className="flex-1">
                 <MediaItem
-                  onClick={(id: string) => onPlay(id)}
+                  onClick={(id: number) => onPlay(id)}
                   data={song}
                   inPlayer={false}
                   index={index}

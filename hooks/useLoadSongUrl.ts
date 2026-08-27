@@ -1,5 +1,5 @@
 import { Song } from "@/types";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSupabaseClient } from "@/hooks/useSupabase";
 
 const useLoadSongUrl = (song: Song) => {
   const supabaseClient = useSupabaseClient();

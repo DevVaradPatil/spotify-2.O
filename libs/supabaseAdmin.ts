@@ -28,17 +28,20 @@ const upsertProductRecord = async (product: Stripe.Product) => {
 };
 
 const upsertPriceRecord = async (price: Stripe.Price) => {
-  const priceData: Price = {
+  // Built from the table's Insert type, not the app-level Price type: the
+  // latter carries a `products` join field that is not a column, which the
+  // typed client correctly rejects as an excess property.
+  const priceData: Database["public"]["Tables"]["prices"]["Insert"] = {
     id: price.id,
     product_id: typeof price.product === "string" ? price.product : "",
     active: price.active,
     currency: price.currency,
-    description: price.nickname ?? undefined,
+    description: price.nickname ?? null,
     type: price.type,
-    unit_amount: price.unit_amount ?? undefined,
-    interval: price.recurring?.interval,
-    interval_count: price.recurring?.interval_count,
-    trial_period_days: price.recurring?.trial_period_days,
+    unit_amount: price.unit_amount ?? null,
+    interval: price.recurring?.interval ?? null,
+    interval_count: price.recurring?.interval_count ?? null,
+    trial_period_days: price.recurring?.trial_period_days ?? null,
     metadata: price.metadata,
   };
 
@@ -81,12 +84,21 @@ const copyBillingDetailsToCustomer = async (
   uuid: string,
   payment_method: Stripe.PaymentMethod
 ) => {
-  //Todo: check this assertion
   const customer = payment_method.customer as string;
   const { name, phone, address } = payment_method.billing_details;
   if (!name || !phone || !address) return;
-  //@ts-ignore
-  await stripe.customers.update(customer, { name, phone, address });
+  await stripe.customers.update(customer, {
+    name,
+    phone,
+    address: {
+      city: address.city ?? undefined,
+      country: address.country ?? undefined,
+      line1: address.line1 ?? undefined,
+      line2: address.line2 ?? undefined,
+      postal_code: address.postal_code ?? undefined,
+      state: address.state ?? undefined,
+    },
+  });
   const { error } = await supabaseAdmin
     .from("users")
     .update({
@@ -120,12 +132,11 @@ const manageSubscriptionStatusChange = async (
     id: subscription.id,
     user_id: uuid,
     metadata: subscription.metadata,
-    // @ts-ignore
     status: subscription.status,
     price_id: subscription.items.data[0].price.id,
-    //TODO check quantity on subscription
-    // @ts-ignore
-    quantity: subscription.quantity,
+    // Stripe moved quantity onto the line item; it is no longer a property of
+    // the subscription object, which is what the @ts-ignore here was hiding.
+    quantity: subscription.items.data[0].quantity ?? null,
     cancel_at_period_end: subscription.cancel_at_period_end,
     cancel_at: subscription.cancel_at
       ? toDateTime(subscription.cancel_at).toISOString()
@@ -156,7 +167,6 @@ const manageSubscriptionStatusChange = async (
   // For a new subscription copy the billing details to the customer object.
   // NOTE: This is a costly operation and should happen at the very end.
   if (createAction && subscription.default_payment_method && uuid)
-    //@ts-ignore
     await copyBillingDetailsToCustomer(
       uuid,
       subscription.default_payment_method as Stripe.PaymentMethod

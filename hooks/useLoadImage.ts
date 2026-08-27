@@ -1,9 +1,9 @@
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSupabaseClient } from "@/hooks/useSupabase";
 
-const useLoadImage = (entityWithImage: { image_path: string } | null) => {
+const useLoadImage = (entityWithImage: { image_path: string | null } | null) => {
   const supabaseClient = useSupabaseClient();
 
-  if (!entityWithImage) {
+  if (!entityWithImage?.image_path) {
     return null;
   }
 

@@ -20,7 +20,7 @@ const PageContent: React.FC<PageContentProps> = ({ songs }) => {
       {songs.slice(0, 6).map((item, index) => (
         <SongItem
           key={item.id}
-          onClick={(id: string) => onPlay(id)}
+          onClick={(id: number) => onPlay(id)}
           data={item}
           index={index}
         />

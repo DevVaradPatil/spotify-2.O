@@ -1,6 +1,6 @@
 import { useUser } from "@/hooks/useUser";
 import { Playlist } from "@/types";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSupabaseClient } from "@/hooks/useSupabase";
 import Image from "next/image";
 import React, { useState } from "react";
 import toast from "react-hot-toast";
@@ -13,7 +13,7 @@ import {
 import { MdPlaylistAdd } from "react-icons/md";
 
 interface AddToPlaylistProps {
-  songId: string | undefined;
+  songId: number | undefined;
 }
 
 const AddToPlaylist: React.FC<AddToPlaylistProps> = ({ songId }) => {
@@ -29,7 +29,7 @@ const AddToPlaylist: React.FC<AddToPlaylistProps> = ({ songId }) => {
         const { data, error } = await supabaseClient
           .from("playlists")
           .select("*")
-          .eq("user_id", user?.id);
+          .eq("user_id", user!.id);
         if (error) {
           toast.error(error.message);
         } else if (data && Array.isArray(data)) {
@@ -68,6 +68,7 @@ const AddToPlaylist: React.FC<AddToPlaylistProps> = ({ songId }) => {
       let songsIds = playlist.song_ids || [];
 
       // Check if the songId is already in the playlist
+      if (songId === undefined) return;
       const songIndex = songsIds.indexOf(songId);
 
       if (songIndex !== -1) {
@@ -119,7 +120,7 @@ const AddToPlaylist: React.FC<AddToPlaylistProps> = ({ songId }) => {
                 {playlists.map((playlist) => {
                   const { data: imageData } = supabaseClient.storage
                     .from("images")
-                    .getPublicUrl(playlist.image_path);
+                    .getPublicUrl(playlist.image_path ?? "");
                   let isAdded = playlist.song_ids.includes(songId!);
 
                   return (

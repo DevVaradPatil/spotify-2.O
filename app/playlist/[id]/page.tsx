@@ -4,7 +4,7 @@ import Header from "@/components/Header";
 import Image from "next/image";
 import React, { useEffect, useState } from "react";
 import { Playlist, Song } from "@/types";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSupabaseClient } from "@/hooks/useSupabase";
 import toast from "react-hot-toast";
 import PlaylistContent from "./components/PlaylistContent";
 import { useUser } from "@/hooks/useUser";
@@ -29,7 +29,7 @@ const PlaylistPage = () => {
         const { data, error } = await supabaseClient
           .from("playlists")
           .select("*")
-          .eq("id", id);
+          .eq("id", String(id));
         if (error) {
           toast.error(error.message);
         } else if (data) {
@@ -49,10 +49,10 @@ const PlaylistPage = () => {
         return router.push("/");
       }
       setName(playlist.name);
-      setDesc(playlist.desc);
+      setDesc(playlist.desc ?? "");
       const { data: imageData } = supabaseClient.storage
         .from("images")
-        .getPublicUrl(playlist.image_path);
+        .getPublicUrl(playlist.image_path ?? "");
       setImagepath(imageData.publicUrl);
 
       const fetchSongs = async () => {

@@ -11,7 +11,7 @@ const useOnPlay = (songs: Song[]) => {
   const { user, subscription } = useUser();
   const subscribeModal = useSubscribeModal();
 
-  const onPlay = (id: string) => {
+  const onPlay = (id: number) => {
     if (!user) {
       return authModal.onOpen();
     }

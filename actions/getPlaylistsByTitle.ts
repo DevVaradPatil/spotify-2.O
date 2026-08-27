@@ -1,12 +1,9 @@
 import { Playlist } from "@/types";
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
+import { createClient } from "@/libs/supabase/server";
 import getPlaylists from "./getPlaylists";
 
 const getPlaylistsByTitle = async (title: string): Promise<Playlist[]> => {
-  const supabase = createServerComponentClient({
-    cookies: cookies,
-  });
+  const supabase = await createClient();
 
   if (!title) {
     const allPlaylists = await getPlaylists();
@@ -22,7 +19,7 @@ const getPlaylistsByTitle = async (title: string): Promise<Playlist[]> => {
     console.log(error);
   }
 
-  return (data as any) || [];
+  return data ?? [];
 };
 
 export default getPlaylistsByTitle;

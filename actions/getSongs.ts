@@ -1,13 +1,10 @@
 import { Song } from "@/types";
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
+import { createClient } from "@/libs/supabase/server";
 
 const DEFAULT_LIMIT = 60;
 
 const getSongs = async (limit: number = DEFAULT_LIMIT): Promise<Song[]> => {
-  const supabase = createServerComponentClient({
-    cookies: cookies,
-  });
+  const supabase = await createClient();
 
   const { data, error } = await supabase
     .from("songs")
@@ -18,7 +15,7 @@ const getSongs = async (limit: number = DEFAULT_LIMIT): Promise<Song[]> => {
     console.log(error);
   }
 
-  return (data as any) || [];
+  return data ?? [];
 };
 
 export default getSongs;

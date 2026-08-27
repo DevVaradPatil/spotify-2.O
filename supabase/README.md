@@ -9,9 +9,10 @@ have applied here as you go.
 | #   | File                                                | Status         | Notes                                         |
 | --- | --------------------------------------------------- | -------------- | --------------------------------------------- |
 | 1   | `20260827000001_enable_rls_and_policies.sql`        | ✅ **Applied** | RLS on all nine tables, owner-scoped policies |
-| 2   | `20260827000002_add_missing_indexes.sql`            | ⬜ Not applied | Ten indexes + `pg_trgm`                       |
-| 3   | `20260827000003_messages_identity_and_realtime.sql` | ⬜ Not applied | **Required for room chat to work at all**     |
-| 4   | `20260827000004_songs_not_null.sql`                 | ⬜ Not applied | Verified zero backfill needed                 |
+| 2   | `20260827000002_add_missing_indexes.sql`            | ✅ **Applied** | Ten indexes + `pg_trgm`                       |
+| 3   | `20260827000003_messages_identity_and_realtime.sql` | ✅ **Applied** | Room chat identity + Realtime publication     |
+| 4   | `20260827000004_songs_not_null.sql`                 | ✅ **Applied** | Verified zero backfill needed                 |
+| 5   | `20260827000005_subscription_status_paused.sql`     | ⬜ Not applied | Adds Stripe's `paused` status to the enum     |
 
 ## Known gotchas
 

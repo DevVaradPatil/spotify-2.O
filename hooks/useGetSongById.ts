@@ -1,9 +1,9 @@
 import { Song } from "@/types";
-import { useSessionContext } from "@supabase/auth-helpers-react";
+import { useSessionContext } from "@/hooks/useSupabase";
 import { useEffect, useMemo, useState } from "react";
 import toast from "react-hot-toast";
 
-const useGetSongById = (id?: string) => {
+const useGetSongById = (id?: number) => {
   const [isLoading, setIsLoading] = useState(false);
   const [song, setSong] = useState<Song | undefined>(undefined);
   const { supabaseClient } = useSessionContext();

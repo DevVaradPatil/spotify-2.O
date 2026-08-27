@@ -8,14 +8,14 @@ import {
   useMemo,
   useState,
 } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSupabaseClient } from "@/hooks/useSupabase";
 import toast from "react-hot-toast";
 import { useUser } from "./useUser";
 
 interface LikedSongsContextValue {
-  likedIds: Set<string>;
-  isLiked: (songId: string) => boolean;
-  toggleLike: (songId: string) => Promise<void>;
+  likedIds: Set<number>;
+  isLiked: (songId: number) => boolean;
+  toggleLike: (songId: number) => Promise<void>;
   isLoading: boolean;
 }
 
@@ -31,7 +31,7 @@ const LikedSongsContext = createContext<LikedSongsContextValue | undefined>(unde
 export const LikedSongsProvider = ({ children }: { children: React.ReactNode }) => {
   const supabase = useSupabaseClient();
   const { user } = useUser();
-  const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
+  const [likedIds, setLikedIds] = useState<Set<number>>(new Set());
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
@@ -51,7 +51,7 @@ export const LikedSongsProvider = ({ children }: { children: React.ReactNode }) 
 
       if (!cancelled) {
         if (!error && data) {
-          setLikedIds(new Set(data.map((row) => String(row.song_id))));
+          setLikedIds(new Set(data.map((row) => row.song_id)));
         }
         setIsLoading(false);
       }
@@ -62,15 +62,12 @@ export const LikedSongsProvider = ({ children }: { children: React.ReactNode }) 
     };
   }, [user?.id, supabase]);
 
-  const isLiked = useCallback(
-    (songId: string) => likedIds.has(String(songId)),
-    [likedIds]
-  );
+  const isLiked = useCallback((songId: number) => likedIds.has(songId), [likedIds]);
 
   const toggleLike = useCallback(
-    async (songId: string) => {
+    async (songId: number) => {
       if (!user?.id) return;
-      const key = String(songId);
+      const key = songId;
       const currentlyLiked = likedIds.has(key);
 
       // Optimistic, reverted if the write fails.

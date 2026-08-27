@@ -7,7 +7,7 @@ import Input from "./Input";
 import Button from "./Button";
 import toast from "react-hot-toast";
 import { useUser } from "@/hooks/useUser";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSupabaseClient } from "@/hooks/useSupabase";
 import { useRouter } from "next/navigation";
 import { buildObjectKey, songFormSchema, validateFile } from "@/libs/uploadValidation";
 

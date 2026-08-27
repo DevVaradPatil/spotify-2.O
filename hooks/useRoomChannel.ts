@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useSupabaseClient } from "@/hooks/useSupabase";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { useUser } from "./useUser";
 
@@ -44,8 +44,8 @@ const useRoomChannel = (roomCode: string) => {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [listeners, setListeners] = useState(1);
 
-  const onPlaySong = useRef<((songId: string) => void) | null>(null);
-  const setOnPlaySong = useCallback((handler: (songId: string) => void) => {
+  const onPlaySong = useRef<((songId: number) => void) | null>(null);
+  const setOnPlaySong = useCallback((handler: (songId: number) => void) => {
     onPlaySong.current = handler;
   }, []);
 
@@ -82,7 +82,7 @@ const useRoomChannel = (roomCode: string) => {
       })
       .on("broadcast", { event: "PLAY_SONG" }, ({ payload }) => {
         const songId = payload?.songId;
-        if (songId != null) onPlaySong.current?.(String(songId));
+        if (songId != null) onPlaySong.current?.(Number(songId));
       })
       .on(
         "postgres_changes",
@@ -125,7 +125,7 @@ const useRoomChannel = (roomCode: string) => {
   }, [roomCode, user, supabase]);
 
   // ---- actions -----------------------------------------------------------
-  const broadcastSong = useCallback((songId: string) => {
+  const broadcastSong = useCallback((songId: number) => {
     const channel = channelRef.current;
     if (!channel) return false;
     channel.send({ type: "broadcast", event: "PLAY_SONG", payload: { songId } });

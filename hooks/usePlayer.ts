@@ -1,12 +1,12 @@
 import { create } from "zustand";
 
 interface PlayerStore {
-  ids: string[];
-  activeId?: string;
+  ids: number[];
+  activeId?: number;
   isPlaying: boolean;
   volume: number;
-  setId: (id: string) => void;
-  setIds: (ids: string[]) => void;
+  setId: (id: number) => void;
+  setIds: (ids: number[]) => void;
   setIsPlaying: (isPlaying: boolean) => void;
   setVolume: (volume: number) => void;
   reset: () => void;
@@ -29,8 +29,8 @@ const usePlayer = create<PlayerStore>((set) => ({
   activeId: undefined,
   isPlaying: false,
   volume: 1,
-  setId: (id: string) => set({ activeId: id }),
-  setIds: (ids: string[]) => set({ ids: ids }),
+  setId: (id: number) => set({ activeId: id }),
+  setIds: (ids: number[]) => set({ ids: ids }),
   setIsPlaying: (isPlaying: boolean) => set({ isPlaying }),
   setVolume: (volume: number) => set({ volume }),
   reset: () => set({ ids: [], activeId: undefined, isPlaying: false, volume: 1 }),

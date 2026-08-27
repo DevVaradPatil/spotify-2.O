@@ -1,21 +1,18 @@
-import Stripe from "stripe";
+import type Stripe from "stripe";
 
-export interface Song {
-  id: string;
-  user_id: string;
-  author: string;
-  title: string;
-  song_path: string;
-  image_path: string;
-}
-export interface Playlist {
-  id: string;
-  user_id: string;
-  song_ids: string[];
-  name: string;
-  desc: string;
-  image_path: string;
-}
+import type { Tables } from "@/types_db";
+
+/**
+ * Derived from the generated database types rather than hand-maintained.
+ *
+ * The old hand-written versions contradicted the schema: Song.id was `string`
+ * where the column is int8, and Playlist.song_ids was `string[]` where the
+ * column is int8[]. AddToPlaylist compared the two with indexOf across that
+ * mismatch, which is why adding or removing a song from a playlist could
+ * silently do nothing.
+ */
+export type Song = Tables<"songs">;
+export type Playlist = Tables<"playlists">;
 
 export interface Product {
   id: string;
@@ -46,15 +43,18 @@ export interface Customer {
   stripe_customer_id?: string;
 }
 
-export interface UserDetails {
-  id: string;
-  first_name: string;
-  last_name: string;
-  full_name?: string;
-  avatar_url?: string;
-  billing_address?: Stripe.Address;
-  payment_method?: Stripe.PaymentMethod[Stripe.PaymentMethod.Type];
-}
+/**
+ * The users table has no first_name / last_name columns — those were declared
+ * here and never existed in the schema, so the cast in useUser silently
+ * asserted fields that could never arrive.
+ */
+export type UserDetails = Omit<
+  Tables<"users">,
+  "billing_address" | "payment_method"
+> & {
+  billing_address?: Stripe.Address | null;
+  payment_method?: Stripe.PaymentMethod[Stripe.PaymentMethod.Type] | null;
+};
 
 export interface ProductWithPrice extends Product {
   prices?: Price[];
