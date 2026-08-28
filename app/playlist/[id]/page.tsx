@@ -6,6 +6,7 @@ import { createClient } from "@/libs/supabase/server";
 import getPlaylistSongs from "@/actions/getPlaylistSongs";
 import PlaylistContent from "./components/PlaylistContent";
 
+// Per-user data — owner-scoped by RLS, so this must not be cached across visitors.
 export const revalidate = 0;
 
 interface PlaylistPageProps {

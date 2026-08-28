@@ -10,6 +10,7 @@ import { useUser } from "@/hooks/useUser";
 import { useSupabaseClient } from "@/hooks/useSupabase";
 import { useRouter } from "next/navigation";
 import { buildObjectKey, songFormSchema, validateFile } from "@/libs/uploadValidation";
+import { revalidateSongs } from "@/actions/revalidate";
 
 const UploadModal = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -104,6 +105,9 @@ const UploadModal = () => {
         return toast.error(supabaseError.message);
       }
 
+      // getSongs is cached across all visitors, so router.refresh() alone
+      // would re-render against a stale cache entry.
+      await revalidateSongs();
       router.refresh();
       setIsLoading(false);
       toast.success("Song created!");

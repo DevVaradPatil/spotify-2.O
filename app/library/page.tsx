@@ -3,6 +3,7 @@ import Image from "next/image";
 import LibraryContent from "./components/LibraryContent";
 import getSongsByUserId from "@/actions/getSongsByUserId";
 
+// Per-user data — lists the signed-in user's own uploads, so this must not be cached across visitors.
 export const revalidate = 0;
 const Library = async () => {
   const songs = await getSongsByUserId();

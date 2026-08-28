@@ -3,6 +3,7 @@ import Header from "@/components/Header";
 import Image from "next/image";
 import LikedContent from "./components/LikedContent";
 
+// Per-user data — lists the signed-in user's likes, so this must not be cached across visitors.
 export const revalidate = 0;
 const Liked = async () => {
   const songs = await getLikedSongs();

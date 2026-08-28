@@ -21,6 +21,7 @@ export const metadata: Metadata = {
   description: "Listen to Music of Your Taste",
 };
 
+// Per-user data — fetches the sidebar's per-user song list, so this must not be cached across visitors.
 export const revalidate = 0;
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {

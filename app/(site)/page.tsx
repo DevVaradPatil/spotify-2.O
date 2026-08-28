@@ -6,8 +6,6 @@ import PlaylistContent from "./components/PlaylistContent";
 import getPlaylists from "@/actions/getPlaylists";
 import RandomButton from "@/components/RandomButton";
 
-export const revalidate = 0;
-
 export default async function Home() {
   const songs = await getSongs();
   const playlists = await getPlaylists();

@@ -1,6 +1,9 @@
 import Stripe from "stripe";
 import { NextResponse } from "next/server";
 import { headers } from "next/headers";
+import { revalidateTag } from "next/cache";
+
+import { CACHE_TAGS } from "@/libs/cacheTags";
 
 import { stripe } from "@/libs/stripe";
 import {
@@ -42,10 +45,14 @@ export async function POST(request: Request) {
         case "product.created":
         case "product.updated":
           await upsertProductRecord(event.data.object as Stripe.Product);
+          // The pricing table is cached globally; this webhook is its only
+          // writer, so it is also the only place that can invalidate it.
+          revalidateTag(CACHE_TAGS.products, "max");
           break;
         case "price.created":
         case "price.updated":
           await upsertPriceRecord(event.data.object as Stripe.Price);
+          revalidateTag(CACHE_TAGS.products, "max");
           break;
         case "customer.subscription.created":
         case "customer.subscription.updated":
