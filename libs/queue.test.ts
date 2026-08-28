@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   getNextId,
+  moveItem,
   getPreviousId,
   nextRepeatMode,
   shuffle,
@@ -110,5 +111,36 @@ describe("nextRepeatMode", () => {
     expect(nextRepeatMode("off")).toBe("all");
     expect(nextRepeatMode("all")).toBe("one");
     expect(nextRepeatMode("one")).toBe("off");
+  });
+});
+
+describe("moveItem", () => {
+  it("moves an item forwards", () => {
+    expect(moveItem([1, 2, 3, 4], 0, 2)).toEqual([2, 3, 1, 4]);
+  });
+
+  it("moves an item backwards", () => {
+    expect(moveItem([1, 2, 3, 4], 3, 1)).toEqual([1, 4, 2, 3]);
+  });
+
+  it("returns an equal array when the indices match", () => {
+    expect(moveItem([1, 2, 3], 1, 1)).toEqual([1, 2, 3]);
+  });
+
+  it("ignores out-of-range indices rather than throwing", () => {
+    // A drop can land outside the list.
+    expect(moveItem([1, 2, 3], -1, 1)).toEqual([1, 2, 3]);
+    expect(moveItem([1, 2, 3], 0, 9)).toEqual([1, 2, 3]);
+  });
+
+  it("does not mutate the input", () => {
+    const input = [1, 2, 3];
+    moveItem(input, 0, 2);
+    expect(input).toEqual([1, 2, 3]);
+  });
+
+  it("preserves every element", () => {
+    const result = moveItem([1, 2, 3, 4, 5], 4, 0);
+    expect([...result].sort()).toEqual([1, 2, 3, 4, 5]);
   });
 });

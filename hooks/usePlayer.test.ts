@@ -112,3 +112,64 @@ describe("usePlayer", () => {
     expect(stored.state.isPlaying).toBeUndefined();
   });
 });
+
+describe("usePlayer queue reordering", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    usePlayer.getState().reset();
+  });
+
+  it("reorders the play order", () => {
+    const { setIds, reorderQueue } = usePlayer.getState();
+    setIds([1, 2, 3, 4]);
+    reorderQueue(0, 2);
+    expect(usePlayer.getState().order).toEqual([2, 3, 1, 4]);
+  });
+
+  it("leaves the original ids untouched so un-shuffling still works", () => {
+    const { setIds, reorderQueue } = usePlayer.getState();
+    setIds([1, 2, 3, 4]);
+    reorderQueue(3, 0);
+
+    expect(usePlayer.getState().order).toEqual([4, 1, 2, 3]);
+    expect(usePlayer.getState().ids).toEqual([1, 2, 3, 4]);
+  });
+
+  it("keeps navigation consistent with the new order", () => {
+    const { setIds, setId, reorderQueue, playNext } = usePlayer.getState();
+    setIds([1, 2, 3]);
+    setId(1);
+    reorderQueue(2, 1); // -> [1, 3, 2]
+
+    playNext(true);
+    expect(usePlayer.getState().activeId).toBe(3);
+  });
+});
+
+describe("usePlayer seek requests", () => {
+  beforeEach(() => {
+    localStorage.clear();
+    usePlayer.getState().reset();
+  });
+
+  it("records a seek intent", () => {
+    usePlayer.getState().requestSeek(42);
+    expect(usePlayer.getState().pendingSeek?.position).toBe(42);
+  });
+
+  it("bumps the nonce so repeat seeks to the same position still apply", () => {
+    const { requestSeek } = usePlayer.getState();
+    requestSeek(30);
+    const first = usePlayer.getState().pendingSeek!.nonce;
+    requestSeek(30);
+    const second = usePlayer.getState().pendingSeek!.nonce;
+
+    expect(second).toBeGreaterThan(first);
+  });
+
+  it("does not persist a seek intent across reloads", () => {
+    usePlayer.getState().requestSeek(15);
+    const stored = JSON.parse(localStorage.getItem("spotify2o-player") ?? "{}");
+    expect(stored.state.pendingSeek).toBeUndefined();
+  });
+});

@@ -87,3 +87,20 @@ export const getPreviousId = (
 /** Cycles off -> all -> one -> off. */
 export const nextRepeatMode = (mode: RepeatMode): RepeatMode =>
   mode === "off" ? "all" : mode === "all" ? "one" : "off";
+
+/**
+ * Moves the item at `from` to index `to`, returning a new array.
+ *
+ * Used by queue drag-reorder. Out-of-range indices return the input unchanged
+ * rather than throwing, because a drop can land outside the list.
+ */
+export const moveItem = <T>(items: readonly T[], from: number, to: number): T[] => {
+  if (from === to || from < 0 || to < 0 || from >= items.length || to >= items.length) {
+    return [...items];
+  }
+
+  const result = [...items];
+  const [moved] = result.splice(from, 1);
+  result.splice(to, 0, moved);
+  return result;
+};

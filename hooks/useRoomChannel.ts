@@ -49,6 +49,16 @@ const useRoomChannel = (roomCode: string) => {
     onPlaySong.current = handler;
   }, []);
 
+  const onPlayback = useRef<
+    ((state: { isPlaying: boolean; position: number }) => void) | null
+  >(null);
+  const setOnPlayback = useCallback(
+    (handler: (state: { isPlaying: boolean; position: number }) => void) => {
+      onPlayback.current = handler;
+    },
+    []
+  );
+
   // ---- history -----------------------------------------------------------
   useEffect(() => {
     if (!roomCode || !user) return;
@@ -83,6 +93,21 @@ const useRoomChannel = (roomCode: string) => {
       .on("broadcast", { event: "PLAY_SONG" }, ({ payload }) => {
         const songId = payload?.songId;
         if (songId != null) onPlaySong.current?.(Number(songId));
+      })
+      .on("broadcast", { event: "PLAYBACK" }, ({ payload }) => {
+        if (typeof payload?.isPlaying !== "boolean") return;
+
+        // Compensate for network latency: if the sender was playing, the
+        // track has advanced by however long the message took to arrive.
+        const sentAt = Number(payload.sentAt) || Date.now();
+        const elapsed = payload.isPlaying
+          ? Math.max(0, (Date.now() - sentAt) / 1000)
+          : 0;
+
+        onPlayback.current?.({
+          isPlaying: payload.isPlaying,
+          position: (Number(payload.position) || 0) + elapsed,
+        });
       })
       .on(
         "postgres_changes",
@@ -132,6 +157,17 @@ const useRoomChannel = (roomCode: string) => {
     return true;
   }, []);
 
+  const broadcastPlayback = useCallback((isPlaying: boolean, position: number) => {
+    const channel = channelRef.current;
+    if (!channel) return false;
+    channel.send({
+      type: "broadcast",
+      event: "PLAYBACK",
+      payload: { isPlaying, position, sentAt: Date.now() },
+    });
+    return true;
+  }, []);
+
   const sendChat = useCallback(
     async (content: string) => {
       const trimmed = content.trim();
@@ -154,7 +190,16 @@ const useRoomChannel = (roomCode: string) => {
     [roomCode, user, supabase]
   );
 
-  return { status, messages, listeners, sendChat, broadcastSong, setOnPlaySong };
+  return {
+    status,
+    messages,
+    listeners,
+    sendChat,
+    broadcastSong,
+    broadcastPlayback,
+    setOnPlaySong,
+    setOnPlayback,
+  };
 };
 
 export default useRoomChannel;

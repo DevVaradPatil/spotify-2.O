@@ -14,6 +14,7 @@ import { MdQueueMusic } from "react-icons/md";
 import { HiSpeakerWave, HiSpeakerXMark } from "react-icons/hi2";
 import Slider from "./Slider";
 import usePlayer from "@/hooks/usePlayer";
+import { setPlaybackPosition } from "@/libs/playbackClock";
 import AddToPlaylist from "./AddToPlaylist";
 
 interface PlayerContentProps {
@@ -89,6 +90,7 @@ const PlayerContent: React.FC<PlayerContentProps> = ({
   const playPrevious = usePlayer((state) => state.playPrevious);
   const toggleShuffle = usePlayer((state) => state.toggleShuffle);
   const cycleRepeat = usePlayer((state) => state.cycleRepeat);
+  const pendingSeek = usePlayer((state) => state.pendingSeek);
 
   // Local, not global — these tick twice a second and nothing outside this
   // component reads them.
@@ -121,7 +123,10 @@ const PlayerContent: React.FC<PlayerContentProps> = ({
   useEffect(() => {
     if (!sound) return;
     const positionInterval = setInterval(() => {
-      setPosition(sound.seek() ?? 0);
+      const current = sound.seek() ?? 0;
+      setPosition(current);
+      // Mirrored outside React so room sync can read it without subscribing.
+      setPlaybackPosition(current);
     }, 500);
     return () => clearInterval(positionInterval);
   }, [sound]);
@@ -132,6 +137,24 @@ const PlayerContent: React.FC<PlayerContentProps> = ({
       sound?.unload();
     };
   }, [sound]);
+
+  // Seeks requested from outside this component — currently room sync. Keyed
+  // on the nonce so seeking twice to the same position still applies.
+  useEffect(() => {
+    if (!sound || !pendingSeek) return;
+    sound.seek(pendingSeek.position);
+    setPosition(pendingSeek.position);
+    setPlaybackPosition(pendingSeek.position);
+  }, [pendingSeek?.nonce, sound]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // The store is the source of truth for play state: a remote pause from a
+  // music room sets isPlaying, and this makes the audio follow.
+  useEffect(() => {
+    if (!sound) return;
+    const playing = sound.playing?.() ?? false;
+    if (isPlaying && !playing) sound.play();
+    if (!isPlaying && playing) sound.pause();
+  }, [isPlaying, sound]);
 
   const handlePlay = useCallback(() => {
     if (!isPlaying) {

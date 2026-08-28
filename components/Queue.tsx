@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { IoMdClose } from "react-icons/io";
-import { MdDragIndicator } from "react-icons/md";
+import { MdDragIndicator, MdArrowUpward, MdArrowDownward } from "react-icons/md";
 
 import { useSupabaseClient } from "@/hooks/useSupabase";
 import usePlayer from "@/hooks/usePlayer";
@@ -27,6 +27,10 @@ const Queue: React.FC<QueueProps> = ({ isOpen, onClose }) => {
   const activeId = usePlayer((state) => state.activeId);
   const setId = usePlayer((state) => state.setId);
   const removeFromQueue = usePlayer((state) => state.removeFromQueue);
+  const reorderQueue = usePlayer((state) => state.reorderQueue);
+
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const [dropIndex, setDropIndex] = useState<number | null>(null);
 
   const [loaded, setLoaded] = useState<{ key: string; songs: Song[] }>({
     key: "",
@@ -69,6 +73,20 @@ const Queue: React.FC<QueueProps> = ({ isOpen, onClose }) => {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [isOpen, onClose]);
 
+  const handleDrop = (targetIndex: number) => {
+    if (dragIndex !== null) reorderQueue(dragIndex, targetIndex);
+    setDragIndex(null);
+    setDropIndex(null);
+  };
+
+  // Drag and drop is mouse-only, so every row also gets move up/down buttons.
+  // Without them the queue would be reorderable only with a pointer.
+  const move = (from: number, delta: number) => {
+    const to = from + delta;
+    if (to < 0 || to >= songs.length) return;
+    reorderQueue(from, to);
+  };
+
   if (!isOpen) return null;
 
   const upNextCount = songs.findIndex((s) => s.id === activeId);
@@ -102,25 +120,56 @@ const Queue: React.FC<QueueProps> = ({ isOpen, onClose }) => {
         {songs.map((song, index) => (
           <li
             key={song.id}
-            className={`group flex items-center gap-x-2 rounded-md ${
+            draggable
+            onDragStart={() => setDragIndex(index)}
+            onDragEnter={() => setDropIndex(index)}
+            onDragOver={(e) => e.preventDefault()}
+            onDrop={() => handleDrop(index)}
+            onDragEnd={() => {
+              setDragIndex(null);
+              setDropIndex(null);
+            }}
+            className={`group flex items-center gap-x-1 rounded-md ${
               song.id === activeId ? "bg-surface-raised" : ""
+            } ${dragIndex === index ? "opacity-40" : ""} ${
+              dropIndex === index && dragIndex !== index
+                ? "border-t-2 border-accent"
+                : "border-t-2 border-transparent"
             }`}
           >
             <MdDragIndicator
               size={18}
               aria-hidden="true"
-              className="shrink-0 text-content-subtle opacity-0 group-hover:opacity-100"
+              className="shrink-0 cursor-grab text-content-subtle opacity-0 group-hover:opacity-100"
             />
             <div className="min-w-0 flex-1">
               <MediaItem data={song} onClick={setId} index={index} inPlayer />
             </div>
-            <button
-              onClick={() => removeFromQueue(song.id)}
-              aria-label={`Remove ${song.title} from the queue`}
-              className="shrink-0 rounded-full p-2 text-content-subtle opacity-0 transition hover:text-white focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent group-hover:opacity-100"
-            >
-              <IoMdClose size={16} aria-hidden="true" />
-            </button>
+            <div className="flex shrink-0 items-center opacity-0 transition focus-within:opacity-100 group-hover:opacity-100">
+              <button
+                onClick={() => move(index, -1)}
+                disabled={index === 0}
+                aria-label={`Move ${song.title} up in the queue`}
+                className="rounded-full p-1 text-content-subtle hover:text-white disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                <MdArrowUpward size={16} aria-hidden="true" />
+              </button>
+              <button
+                onClick={() => move(index, 1)}
+                disabled={index === songs.length - 1}
+                aria-label={`Move ${song.title} down in the queue`}
+                className="rounded-full p-1 text-content-subtle hover:text-white disabled:opacity-30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                <MdArrowDownward size={16} aria-hidden="true" />
+              </button>
+              <button
+                onClick={() => removeFromQueue(song.id)}
+                aria-label={`Remove ${song.title} from the queue`}
+                className="rounded-full p-2 text-content-subtle hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              >
+                <IoMdClose size={16} aria-hidden="true" />
+              </button>
+            </div>
           </li>
         ))}
       </ol>

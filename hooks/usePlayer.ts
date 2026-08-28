@@ -4,6 +4,7 @@ import { persist, createJSONStorage } from "zustand/middleware";
 import {
   getNextId,
   getPreviousId,
+  moveItem,
   nextRepeatMode,
   shuffleKeepingFirst,
   type RepeatMode,
@@ -30,6 +31,14 @@ interface PlayerStore {
   playNext: (isExplicit?: boolean) => void;
   playPrevious: () => void;
   removeFromQueue: (id: number) => void;
+  reorderQueue: (from: number, to: number) => void;
+  /**
+   * Ask the player to seek. PlayerContent owns the audio element, so this is
+   * an intent rather than a direct call; the nonce makes repeat seeks to the
+   * same position distinguishable.
+   */
+  pendingSeek?: { position: number; nonce: number };
+  requestSeek: (position: number) => void;
   reset: () => void;
 }
 
@@ -104,6 +113,19 @@ const usePlayer = create<PlayerStore>()(
           order: state.order.filter((queued) => queued !== id),
         })),
 
+      // Reorders the play order only. `ids` keeps the original sequence so
+      // turning shuffle off still restores what the user started with.
+      reorderQueue: (from: number, to: number) =>
+        set((state) => ({ order: moveItem(state.order, from, to) })),
+
+      requestSeek: (position: number) =>
+        set((state) => ({
+          pendingSeek: {
+            position,
+            nonce: (state.pendingSeek?.nonce ?? 0) + 1,
+          },
+        })),
+
       reset: () =>
         set({
           ids: [],
@@ -112,6 +134,7 @@ const usePlayer = create<PlayerStore>()(
           isPlaying: false,
           isShuffled: false,
           repeat: "off",
+          pendingSeek: undefined,
         }),
     }),
     {

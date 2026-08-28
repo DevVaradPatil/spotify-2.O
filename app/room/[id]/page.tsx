@@ -8,6 +8,7 @@ import SearchContent from "@/app/search/components/SearchContent";
 import debounce from "lodash.debounce";
 import Chat from "./components/Chat";
 import usePlayer from "@/hooks/usePlayer";
+import { getPlaybackPosition } from "@/libs/playbackClock";
 import useRoomChannel from "@/hooks/useRoomChannel";
 
 const Room = () => {
@@ -20,14 +21,29 @@ const Room = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const activeId = usePlayer((state) => state.activeId);
+  const isPlaying = usePlayer((state) => state.isPlaying);
   const setId = usePlayer((state) => state.setId);
   const setIds = usePlayer((state) => state.setIds);
+  const setIsPlaying = usePlayer((state) => state.setIsPlaying);
+  const requestSeek = usePlayer((state) => state.requestSeek);
 
-  const { status, messages, listeners, sendChat, broadcastSong, setOnPlaySong } =
-    useRoomChannel(roomCode);
+  const {
+    status,
+    messages,
+    listeners,
+    sendChat,
+    broadcastSong,
+    broadcastPlayback,
+    setOnPlaySong,
+    setOnPlayback,
+  } = useRoomChannel(roomCode);
 
   // Guards against echoing a track back out after receiving it.
   const lastSyncedId = useRef<number | undefined>(activeId);
+  // Same guard for play/pause: applying a remote state change must not
+  // immediately rebroadcast it and ping-pong around the room.
+  const isApplyingRemote = useRef(false);
+  const lastSentIsPlaying = useRef<boolean | null>(null);
 
   useEffect(() => {
     if (!user) authModal.onOpen();
@@ -72,6 +88,30 @@ const Room = () => {
     lastSyncedId.current = activeId;
     broadcastSong(activeId);
   }, [activeId, broadcastSong]);
+
+  useEffect(() => {
+    setOnPlayback(({ isPlaying: remotePlaying, position }) => {
+      isApplyingRemote.current = true;
+      lastSentIsPlaying.current = remotePlaying;
+      requestSeek(position);
+      setIsPlaying(remotePlaying);
+      // Released after the state settles, so the effect below sees the flag.
+      setTimeout(() => {
+        isApplyingRemote.current = false;
+      }, 0);
+    });
+  }, [setOnPlayback, requestSeek, setIsPlaying]);
+
+  useEffect(() => {
+    if (!activeId) return;
+    if (isApplyingRemote.current) return;
+    if (lastSentIsPlaying.current === isPlaying) return;
+
+    lastSentIsPlaying.current = isPlaying;
+    // Position is read from the non-reactive clock rather than the store, so
+    // the player does not have to publish a value that ticks twice a second.
+    broadcastPlayback(isPlaying, getPlaybackPosition());
+  }, [isPlaying, activeId, broadcastPlayback]);
 
   if (!user) return null;
 
