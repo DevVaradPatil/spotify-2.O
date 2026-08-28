@@ -9,6 +9,30 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      artists: {
+        Row: {
+          id: number;
+          name: string;
+          slug: string;
+          image_path: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: number;
+          name: string;
+          slug: string;
+          image_path?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: number;
+          name?: string;
+          slug?: string;
+          image_path?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
       customers: {
         Row: {
           id: string;
@@ -26,6 +50,37 @@ export interface Database {
           {
             foreignKeyName: "customers_id_fkey";
             columns: ["id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      follows: {
+        Row: {
+          user_id: string;
+          artist_id: number;
+          created_at: string;
+        };
+        Insert: {
+          user_id: string;
+          artist_id: number;
+          created_at?: string;
+        };
+        Update: {
+          user_id?: string;
+          artist_id?: number;
+          created_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "follows_artist_id_fkey";
+            columns: ["artist_id"];
+            referencedRelation: "artists";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "follows_user_id_fkey";
+            columns: ["user_id"];
             referencedRelation: "users";
             referencedColumns: ["id"];
           },
@@ -96,6 +151,40 @@ export interface Database {
         Relationships: [
           {
             foreignKeyName: "messages_user_id_fkey";
+            columns: ["user_id"];
+            referencedRelation: "users";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
+      play_events: {
+        Row: {
+          id: number;
+          user_id: string;
+          song_id: number;
+          played_at: string;
+        };
+        Insert: {
+          id?: number;
+          user_id: string;
+          song_id: number;
+          played_at?: string;
+        };
+        Update: {
+          id?: number;
+          user_id?: string;
+          song_id?: number;
+          played_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "play_events_song_id_fkey";
+            columns: ["song_id"];
+            referencedRelation: "songs";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "play_events_user_id_fkey";
             columns: ["user_id"];
             referencedRelation: "users";
             referencedColumns: ["id"];
@@ -251,6 +340,7 @@ export interface Database {
       };
       songs: {
         Row: {
+          artist_id: number | null;
           author: string;
           created_at: string;
           id: number;
@@ -260,6 +350,7 @@ export interface Database {
           user_id: string;
         };
         Insert: {
+          artist_id?: number | null;
           author: string;
           created_at?: string;
           id?: number;
@@ -269,6 +360,7 @@ export interface Database {
           user_id: string;
         };
         Update: {
+          artist_id?: number | null;
           author?: string;
           created_at?: string;
           id?: number;

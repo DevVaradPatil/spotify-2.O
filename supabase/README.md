@@ -14,6 +14,8 @@ have applied here as you go.
 | 4   | `20260827000004_songs_not_null.sql`                 | ✅ **Applied** | Verified zero backfill needed                 |
 | 5   | `20260827000005_subscription_status_paused.sql`     | ✅ **Applied** | Adds Stripe's `paused` status to the enum     |
 | 6   | `20260827000006_playlist_songs_join_table.sql`      | ✅ **Applied** | Membership moved off the `song_ids` array     |
+| 7   | `20260827000007_play_events.sql`                    | ⬜ Not applied | Listening history for "Recently played"       |
+| 8   | `20260827000008_artists_and_follows.sql`            | ⬜ Not applied | Artists as entities + following               |
 
 ## Known gotchas
 

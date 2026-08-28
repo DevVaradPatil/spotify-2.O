@@ -5,6 +5,7 @@ import { useCallback, useState } from "react";
 import useGetSongById from "@/hooks/useGetSongById";
 import useLoadSongUrl from "@/hooks/useLoadSongUrl";
 import useMediaSession from "@/hooks/useMediaSession";
+import useRecordPlay from "@/hooks/useRecordPlay";
 import usePlayer from "@/hooks/usePlayer";
 import PlayerContent from "./PlayerContent";
 import Queue from "./Queue";
@@ -23,6 +24,10 @@ const Player = () => {
   // PlayerContent because PlayerContent is keyed by songUrl and remounts on
   // every track change.
   useMediaSession(song ?? null);
+
+  // Recorded here, not in useOnPlay: this catches auto-advance, repeat and
+  // remote room changes, not just tracks the user clicked.
+  useRecordPlay(activeId);
 
   if (!song || !songUrl || !activeId) {
     return null;

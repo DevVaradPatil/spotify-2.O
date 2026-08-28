@@ -5,10 +5,19 @@ import PageContent from "./components/PageContent";
 import PlaylistContent from "./components/PlaylistContent";
 import getPlaylists from "@/actions/getPlaylists";
 import RandomButton from "@/components/RandomButton";
+import getRecentlyPlayed from "@/actions/getRecentlyPlayed";
+import getFollowedArtists from "@/actions/getFollowedArtists";
+import ArtistRow from "./components/ArtistRow";
 
 export default async function Home() {
-  const songs = await getSongs();
-  const playlists = await getPlaylists();
+  // Run in parallel: these were sequential awaits, so the page waited for the
+  // sum of every query rather than the slowest one.
+  const [songs, playlists, recentlyPlayed, followedArtists] = await Promise.all([
+    getSongs(),
+    getPlaylists(),
+    getRecentlyPlayed(),
+    getFollowedArtists(),
+  ]);
   return (
     <div className="bg-surface rounded-b-lg md:rounded-lg  h-full w-full overflow-hidden overflow-y-auto">
       <Header>
@@ -31,18 +40,26 @@ export default async function Home() {
           </div>
         </div>
       </Header>
-      <div className=" mt-2 mb-7 px-4 md:px-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-white text-2xl font-semibold">Newest songs</h1>
-        </div>
+      {recentlyPlayed.length > 0 && (
+        <section className=" mt-2 mb-7 px-4 md:px-6">
+          <h2 className="text-white text-2xl font-semibold">Recently played</h2>
+          <PageContent songs={recentlyPlayed} />
+        </section>
+      )}
+      <section className=" mt-2 mb-7 px-4 md:px-6">
+        <h2 className="text-white text-2xl font-semibold">Newest songs</h2>
         <PageContent songs={songs} />
-      </div>
-      <div className=" mt-2 mb-7 px-4 md:px-6">
-        <div className="flex justify-between items-center">
-          <h1 className="text-white text-2xl font-semibold">Your Playlists</h1>
-        </div>
+      </section>
+      {followedArtists.length > 0 && (
+        <section className=" mt-2 mb-7 px-4 md:px-6">
+          <h2 className="text-white text-2xl font-semibold">Artists you follow</h2>
+          <ArtistRow artists={followedArtists} />
+        </section>
+      )}
+      <section className=" mt-2 mb-7 px-4 md:px-6">
+        <h2 className="text-white text-2xl font-semibold">Your Playlists</h2>
         <PlaylistContent playlists={playlists} />
-      </div>
+      </section>
     </div>
   );
 }

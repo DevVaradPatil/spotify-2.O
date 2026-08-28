@@ -13,6 +13,7 @@ import type { Tables } from "@/types_db";
  */
 export type Song = Tables<"songs">;
 export type Playlist = Tables<"playlists">;
+export type Artist = Tables<"artists">;
 
 export interface Product {
   id: string;
