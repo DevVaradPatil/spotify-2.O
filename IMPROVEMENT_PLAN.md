@@ -465,23 +465,23 @@ Commit `7a24f62`, plus player work that landed in `a016599`.
 
 Commits `8cd3c90`, `c52f869`.
 
-| Item                                                          | Effort | Status                                                                                      |
-| ------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------- |
-| `playlist_songs` join table migration (DB-8)                  | L      | ✅ `c52f869` — **migration 6 not yet applied**                                              |
-| Rooms rebuilt on Supabase Realtime (DB-11)                    | L      | ✅ Phase 2, `adac2b6`                                                                       |
-| Shuffle + repeat (FEAT-9)                                     | M      | ✅ `8cd3c90`                                                                                |
-| Visible queue (FEAT-10)                                       | L      | ✅ `8cd3c90` — view, jump, remove. Drag-reorder not built                                   |
-| Media Session API + persisted player state (FEAT-11, FEAT-12) | S      | ✅ `8cd3c90`                                                                                |
-| Test foundation — Vitest (CQ-9)                               | L      | ◐ `8cd3c90` — 29 tests over queue rules and the player store. No component or e2e tests yet |
-| Fix room sync end-to-end (FEAT-6)                             | L      | ◐ Track changes and chat sync; play/pause and position do not                               |
-| Playlist enhancements (FEAT-13)                               | M      | ⬜ Not started — `position` now exists, so drag-reorder is unblocked                        |
-| Recently played / history (FEAT-14)                           | M      | ⬜ Not started                                                                              |
-| Artists & follows (FEAT-15)                                   | L      | ⬜ Not started                                                                              |
-| Search improvements (FEAT-16)                                 | M      | ⬜ Not started                                                                              |
-| Migrate mutations to Server Actions (CQ-7, CQ-15)             | L      | ⬜ Not started                                                                              |
-| PWA / offline (FEAT-17)                                       | M      | ⬜ Not started                                                                              |
-| Sentry + structured logging (CQ-14)                           | M      | ⬜ Not started                                                                              |
-| Real caching strategy (PERF-4)                                | M      | ⬜ Not started — carried over from Phase 2                                                  |
+| Item                                                          | Effort | Status                                                                                          |
+| ------------------------------------------------------------- | ------ | ----------------------------------------------------------------------------------------------- |
+| `playlist_songs` join table migration (DB-8)                  | L      | ✅ `c52f869` — migration 6 applied                                                              |
+| Rooms rebuilt on Supabase Realtime (DB-11)                    | L      | ✅ Phase 2, `adac2b6`                                                                           |
+| Shuffle + repeat (FEAT-9)                                     | M      | ✅ `8cd3c90`                                                                                    |
+| Visible queue (FEAT-10)                                       | L      | ✅ `8cd3c90`, `62d3d96` — view, jump, remove, drag-reorder + keyboard move                      |
+| Media Session API + persisted player state (FEAT-11, FEAT-12) | S      | ✅ `8cd3c90`                                                                                    |
+| Test foundation — Vitest (CQ-9)                               | L      | ◐ 58 tests over queue rules, the player store and three components. **No e2e yet**              |
+| Fix room sync end-to-end (FEAT-6)                             | L      | ◐ `62d3d96` — track, chat, play/pause and position sync. **Not verified with two live clients** |
+| Playlist enhancements (FEAT-13)                               | M      | ◐ Queue reorder done. Persisted playlist reorder, public/private and share links not started    |
+| Recently played / history (FEAT-14)                           | M      | ⬜ Not started                                                                                  |
+| Artists & follows (FEAT-15)                                   | L      | ⬜ Not started                                                                                  |
+| Search improvements (FEAT-16)                                 | M      | ⬜ Not started                                                                                  |
+| Migrate mutations to Server Actions (CQ-7, CQ-15)             | L      | ⬜ Not started                                                                                  |
+| PWA / offline (FEAT-17)                                       | M      | ⬜ Not started                                                                                  |
+| Sentry + structured logging (CQ-14)                           | M      | ⬜ Not started                                                                                  |
+| Real caching strategy (PERF-4)                                | M      | ⬜ Not started — carried over from Phase 2                                                      |
 
 ## 5. Breaking Changes / Risks
 
