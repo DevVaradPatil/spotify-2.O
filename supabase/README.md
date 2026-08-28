@@ -13,7 +13,7 @@ have applied here as you go.
 | 3   | `20260827000003_messages_identity_and_realtime.sql` | ✅ **Applied** | Room chat identity + Realtime publication     |
 | 4   | `20260827000004_songs_not_null.sql`                 | ✅ **Applied** | Verified zero backfill needed                 |
 | 5   | `20260827000005_subscription_status_paused.sql`     | ✅ **Applied** | Adds Stripe's `paused` status to the enum     |
-| 6   | `20260827000006_playlist_songs_join_table.sql`      | ⬜ Not applied | **Required — playlists break until applied**  |
+| 6   | `20260827000006_playlist_songs_join_table.sql`      | ✅ **Applied** | Membership moved off the `song_ids` array     |
 
 ## Known gotchas
 
