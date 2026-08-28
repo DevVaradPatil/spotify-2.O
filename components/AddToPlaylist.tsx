@@ -159,7 +159,7 @@ const AddToPlaylist: React.FC<AddToPlaylistProps> = ({ songId }) => {
                         <div className="relative rounded-md min-h-[48px] min-w-[48px] overflow-hidden">
                           <Image
                             src={imageData.publicUrl}
-                            alt="playlist"
+                            alt=""
                             fill
                             sizes="48px"
                             className="object-cover"
@@ -169,7 +169,13 @@ const AddToPlaylist: React.FC<AddToPlaylistProps> = ({ songId }) => {
                       </div>
                       <button
                         onClick={() => handleAddToPlaylist(playlist.id)}
-                        className=" bg-accent hover:bg-accent-hover text-white p-1 rounded-full cursor-pointer"
+                        aria-label={
+                          isAdded
+                            ? `Remove from ${playlist.name}`
+                            : `Add to ${playlist.name}`
+                        }
+                        aria-pressed={isAdded}
+                        className=" bg-accent hover:bg-accent-hover text-white p-1 rounded-full cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-raised"
                       >
                         {isAdded ? (
                           <AiOutlineCheck size={20} />
