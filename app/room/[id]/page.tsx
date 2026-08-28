@@ -180,7 +180,7 @@ const Room = () => {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
             />
-            <SearchContent songs={songs} />
+            <SearchContent songs={songs} artists={[]} query={searchQuery} />
           </div>
         )}
         {activeTab === "chat" && (

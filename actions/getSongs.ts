@@ -13,7 +13,7 @@ const DEFAULT_LIMIT = 60;
  * Uses the cookie-free client on purpose: reading cookies would mark the
  * request dynamic and defeat the cache entirely.
  *
- * Invalidated by revalidateSongs() after an upload.
+ * Invalidated by the createSong Server Action after an upload.
  */
 const getSongs = unstable_cache(
   async (limit: number = DEFAULT_LIMIT): Promise<Song[]> => {

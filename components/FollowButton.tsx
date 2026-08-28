@@ -5,8 +5,8 @@ import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 import useAuthModal from "@/hooks/useAuthModel";
-import { useSupabaseClient } from "@/hooks/useSupabase";
 import { useUser } from "@/hooks/useUser";
+import { toggleFollow } from "@/actions/mutations";
 
 interface FollowButtonProps {
   artistId: number;
@@ -21,7 +21,6 @@ const FollowButton: React.FC<FollowButtonProps> = ({
   initialIsFollowing,
   initialFollowerCount,
 }) => {
-  const supabase = useSupabaseClient();
   const { user } = useUser();
   const authModal = useAuthModal();
   const router = useRouter();
@@ -41,20 +40,12 @@ const FollowButton: React.FC<FollowButtonProps> = ({
     setIsFollowing(!wasFollowing);
     setFollowerCount((count) => count + (wasFollowing ? -1 : 1));
 
-    const { error } = wasFollowing
-      ? await supabase
-          .from("follows")
-          .delete()
-          .eq("artist_id", artistId)
-          .eq("user_id", user.id)
-      : await supabase
-          .from("follows")
-          .insert({ artist_id: artistId, user_id: user.id });
+    const result = await toggleFollow(artistId);
 
-    if (error) {
+    if ("error" in result) {
       setIsFollowing(wasFollowing);
       setFollowerCount((count) => count + (wasFollowing ? 1 : -1));
-      toast.error(error.message);
+      toast.error(result.error);
     } else {
       router.refresh();
     }

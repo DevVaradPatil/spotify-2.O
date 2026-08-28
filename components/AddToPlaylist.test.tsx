@@ -19,6 +19,11 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ refresh }),
 }));
 
+const togglePlaylistSongAction = vi.fn();
+vi.mock("@/actions/mutations", () => ({
+  togglePlaylistSong: (...args: unknown[]) => togglePlaylistSongAction(...args),
+}));
+
 let supabase: ReturnType<typeof makeSupabase>;
 vi.mock("@/hooks/useSupabase", () => ({
   useSupabaseClient: () => supabase,
@@ -64,6 +69,7 @@ const openModal = async () => {
 describe("AddToPlaylist", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    togglePlaylistSongAction.mockResolvedValue({ added: true });
     setup();
   });
 
@@ -84,41 +90,35 @@ describe("AddToPlaylist", () => {
   });
 
   it("removes the song when it is already in the playlist", async () => {
-    const { playlistSongs } = setup([{ playlist_id: 10 }]);
+    setup([{ playlist_id: 10 }]);
+    togglePlaylistSongAction.mockResolvedValue({ added: false });
     render(<AddToPlaylist songId={1} />);
     const user = await openModal();
 
-    playlistSongs.calls.splice(0);
     await user.click(screen.getByRole("button", { name: /remove from road trip/i }));
 
-    await waitFor(() =>
-      expect(playlistSongs.calls.map((c) => c.method)).toContain("delete")
-    );
+    // Ownership, existence and ordering are decided server-side now.
+    await waitFor(() => expect(togglePlaylistSongAction).toHaveBeenCalledWith(10, 1));
     expect(toastSuccess).toHaveBeenCalledWith("Song removed from playlist");
   });
 
   it("adds the song when it is not in the playlist", async () => {
-    const { playlistSongs } = setup([]);
-    // The membership lookup returns nothing, so the toggle should insert.
+    setup([]);
     render(<AddToPlaylist songId={1} />);
     const user = await openModal();
 
-    playlistSongs.setResult({ data: null, error: null });
-    playlistSongs.calls.splice(0);
     await user.click(screen.getByRole("button", { name: /add to focus/i }));
 
-    await waitFor(() =>
-      expect(playlistSongs.calls.map((c) => c.method)).toContain("insert")
-    );
+    await waitFor(() => expect(togglePlaylistSongAction).toHaveBeenCalledWith(20, 1));
     expect(toastSuccess).toHaveBeenCalledWith("Song added to playlist");
   });
 
   it("surfaces a write failure instead of reporting success", async () => {
-    const { playlistSongs } = setup([]);
+    setup([]);
+    togglePlaylistSongAction.mockResolvedValue({ error: "row level security" });
     render(<AddToPlaylist songId={1} />);
     const user = await openModal();
 
-    playlistSongs.setResult({ data: null, error: { message: "row level security" } });
     await user.click(screen.getByRole("button", { name: /add to focus/i }));
 
     await waitFor(() => expect(toastError).toHaveBeenCalledWith("row level security"));

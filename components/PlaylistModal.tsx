@@ -13,6 +13,7 @@ import usePlaylistModal from "@/hooks/usePlaylistModal";
 import { useUser } from "@/hooks/useUser";
 import { useSupabaseClient } from "@/hooks/useSupabase";
 import { useRouter } from "next/navigation";
+import { createPlaylist } from "@/actions/mutations";
 import { FieldValues, SubmitHandler, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 
@@ -74,23 +75,18 @@ const PlaylistModal = () => {
         return toast.error("Failed image upload!");
       }
 
-      // Insert a new playlist into the 'playlists' table.
-      const { error } = await supabaseClient.from("playlists").insert({
-        user_id: user.id,
-        // Membership lives in playlist_songs now. This column is still
-        // written so migration 6 stays rollback-safe; drop it together with
-        // the column in the follow-up migration.
-        song_ids: [],
+      // Only the metadata goes through the server action; the cover is
+      // already in storage. song_ids is no longer written here — the action
+      // owns that, and membership lives in playlist_songs.
+      const result = await createPlaylist({
         name: fields.data.name,
         desc: fields.data.desc,
-        image_path: imageData.path,
+        imagePath: imageData.path,
       });
 
-      // This error was previously destructured and then never checked, so a
-      // failed insert still reported "Playlist created!".
-      if (error) {
+      if ("error" in result) {
         setIsLoading(false);
-        return toast.error(error.message);
+        return toast.error(result.error);
       }
 
       router.refresh();

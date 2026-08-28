@@ -17,6 +17,11 @@ vi.mock("@/hooks/useUser", () => ({
 
 import type { QueryMock } from "@/test/supabaseMock";
 
+const toggleLikeAction = vi.fn();
+vi.mock("@/actions/mutations", () => ({
+  toggleLike: (...args: unknown[]) => toggleLikeAction(...args),
+}));
+
 let supabase: ReturnType<typeof makeSupabase>;
 let likedSongsQuery: QueryMock<{ song_id: number }[]>;
 vi.mock("@/hooks/useSupabase", () => ({
@@ -34,6 +39,7 @@ const renderLiked = () => renderHook(() => useLikedSongs(), { wrapper });
 describe("useLikedSongs", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    toggleLikeAction.mockResolvedValue({ liked: true });
     currentUser = { id: "user-1" };
     likedSongsQuery = makeQuery({
       data: [{ song_id: 1 }, { song_id: 2 }],
@@ -83,11 +89,14 @@ describe("useLikedSongs", () => {
     });
 
     expect(result.current.isLiked(5)).toBe(true);
-    expect(likedSongsQuery.calls.map((c) => c.method)).toContain("insert");
+    // The write goes through the Server Action, which re-checks the session
+    // and the id server-side.
+    expect(toggleLikeAction).toHaveBeenCalledWith(5);
     expect(toastSuccess).toHaveBeenCalledWith("Added to Liked Songs!");
   });
 
-  it("removes an existing like with a delete rather than an insert", async () => {
+  it("removes an existing like", async () => {
+    toggleLikeAction.mockResolvedValue({ liked: false });
     const { result } = renderLiked();
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -96,18 +105,17 @@ describe("useLikedSongs", () => {
     });
 
     expect(result.current.isLiked(1)).toBe(false);
-    expect(likedSongsQuery.calls.map((c) => c.method)).toContain("delete");
+    expect(toggleLikeAction).toHaveBeenCalledWith(1);
+    expect(toastSuccess).not.toHaveBeenCalled();
   });
 
   it("rolls the optimistic update back when the write fails", async () => {
     const likedSongs = makeQuery({ data: [], error: null });
     supabase = makeSupabase({ liked_songs: likedSongs });
+    toggleLikeAction.mockResolvedValue({ error: "insert denied" });
 
     const { result } = renderLiked();
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-
-    // Make the write fail on the builder the hook already holds.
-    likedSongs.setResult({ data: null, error: { message: "insert denied" } });
 
     await act(async () => {
       await result.current.toggleLike(9);

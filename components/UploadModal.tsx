@@ -10,7 +10,7 @@ import { useUser } from "@/hooks/useUser";
 import { useSupabaseClient } from "@/hooks/useSupabase";
 import { useRouter } from "next/navigation";
 import { buildObjectKey, songFormSchema, validateFile } from "@/libs/uploadValidation";
-import { revalidateSongs } from "@/actions/revalidate";
+import { createSong } from "@/actions/mutations";
 
 const UploadModal = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -92,22 +92,20 @@ const UploadModal = () => {
         return toast.error("Failed image upload!");
       }
 
-      const { error: supabaseError } = await supabaseClient.from("songs").insert({
-        user_id: user.id,
+      // The files are already in storage — only the metadata goes through the
+      // server action, which re-validates it and busts the catalog cache.
+      const result = await createSong({
         title: fields.data.title,
         author: fields.data.author,
-        image_path: imageData.path,
-        song_path: songData.path,
+        songPath: songData.path,
+        imagePath: imageData.path,
       });
 
-      if (supabaseError) {
+      if ("error" in result) {
         setIsLoading(false);
-        return toast.error(supabaseError.message);
+        return toast.error(result.error);
       }
 
-      // getSongs is cached across all visitors, so router.refresh() alone
-      // would re-render against a stale cache entry.
-      await revalidateSongs();
       router.refresh();
       setIsLoading(false);
       toast.success("Song created!");

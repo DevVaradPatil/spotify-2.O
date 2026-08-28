@@ -10,6 +10,7 @@ import {
 } from "react";
 import { useSupabaseClient } from "@/hooks/useSupabase";
 import toast from "react-hot-toast";
+import { toggleLike as toggleLikeAction } from "@/actions/mutations";
 import { useUser } from "./useUser";
 
 interface LikedSongsContextValue {
@@ -92,25 +93,19 @@ export const LikedSongsProvider = ({ children }: { children: React.ReactNode }) 
 
       applyLocal(!currentlyLiked);
 
-      const { error } = currentlyLiked
-        ? await supabase
-            .from("liked_songs")
-            .delete()
-            .eq("user_id", userId)
-            .eq("song_id", songId)
-        : await supabase
-            .from("liked_songs")
-            .insert({ song_id: songId, user_id: userId });
+      // The write runs server-side so the session and the song id are checked
+      // there, not only in the browser.
+      const result = await toggleLikeAction(songId);
 
-      if (error) {
+      if ("error" in result) {
         applyLocal(currentlyLiked);
-        toast.error(error.message);
+        toast.error(result.error);
         return;
       }
 
-      if (!currentlyLiked) toast.success("Added to Liked Songs!");
+      if (result.liked) toast.success("Added to Liked Songs!");
     },
-    [likedIds, user?.id, supabase]
+    [likedIds, user?.id]
   );
 
   const value = useMemo(

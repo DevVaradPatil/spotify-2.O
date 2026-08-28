@@ -2,7 +2,10 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { makeQuery, makeSupabase, type QueryMock } from "@/test/supabaseMock";
+const toggleFollowAction = vi.fn();
+vi.mock("@/actions/mutations", () => ({
+  toggleFollow: (...args: unknown[]) => toggleFollowAction(...args),
+}));
 
 const toastError = vi.fn();
 vi.mock("react-hot-toast", () => ({
@@ -17,10 +20,6 @@ vi.mock("@/hooks/useAuthModel", () => ({ default: () => ({ onOpen }) }));
 
 const refresh = vi.fn();
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh }) }));
-
-let supabase: ReturnType<typeof makeSupabase>;
-let follows: QueryMock<null>;
-vi.mock("@/hooks/useSupabase", () => ({ useSupabaseClient: () => supabase }));
 
 const FollowButton = (await import("./FollowButton")).default;
 
@@ -39,8 +38,7 @@ describe("FollowButton", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     currentUser = { id: "user-1" };
-    follows = makeQuery({ data: null, error: null });
-    supabase = makeSupabase({ follows });
+    toggleFollowAction.mockResolvedValue({ following: true });
   });
 
   it("names the action and the artist", () => {
@@ -54,19 +52,20 @@ describe("FollowButton", () => {
     await userEvent.click(screen.getByRole("button", { name: /follow avicii/i }));
 
     expect(screen.getByText("4 followers")).toBeInTheDocument();
-    expect(follows.calls.map((c) => c.method)).toContain("insert");
+    expect(toggleFollowAction).toHaveBeenCalledWith(7);
   });
 
   it("unfollows an artist it already follows", async () => {
+    toggleFollowAction.mockResolvedValue({ following: false });
     renderButton({ initialIsFollowing: true, initialFollowerCount: 10 });
     await userEvent.click(screen.getByRole("button", { name: /unfollow avicii/i }));
 
     expect(screen.getByText("9 followers")).toBeInTheDocument();
-    expect(follows.calls.map((c) => c.method)).toContain("delete");
+    expect(toggleFollowAction).toHaveBeenCalledWith(7);
   });
 
   it("rolls back the count when the write fails", async () => {
-    follows.setResult({ data: null, error: { message: "denied" } });
+    toggleFollowAction.mockResolvedValue({ error: "denied" });
     renderButton();
 
     await userEvent.click(screen.getByRole("button", { name: /follow avicii/i }));
@@ -88,6 +87,6 @@ describe("FollowButton", () => {
     await userEvent.click(screen.getByRole("button", { name: /follow avicii/i }));
 
     expect(onOpen).toHaveBeenCalled();
-    expect(supabase.from).not.toHaveBeenCalled();
+    expect(toggleFollowAction).not.toHaveBeenCalled();
   });
 });

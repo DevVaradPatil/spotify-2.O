@@ -4,6 +4,7 @@ import { useSupabaseClient } from "@/hooks/useSupabase";
 import Image from "next/image";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { togglePlaylistSong } from "@/actions/mutations";
 import toast from "react-hot-toast";
 import {
   AiOutlineCheck,
@@ -59,71 +60,29 @@ const AddToPlaylist: React.FC<AddToPlaylistProps> = ({ songId }) => {
   const handleAddToPlaylist = async (playlistId: number) => {
     if (songId === undefined) return;
 
-    try {
-      // A single targeted row per membership change, instead of reading the
-      // whole song_ids array, splicing it and writing it back. That
-      // read-modify-write meant two concurrent edits silently discarded one
-      // another, and it was also where the string/number id mismatch made
-      // indexOf never match.
-      const { data: existing, error: lookupError } = await supabaseClient
-        .from("playlist_songs")
-        .select("song_id")
-        .eq("playlist_id", playlistId)
-        .eq("song_id", songId)
-        .maybeSingle();
+    // Ownership, existence and ordering are all decided server-side now. The
+    // browser previously did a read, a branch and a write of its own, none of
+    // which anything but RLS was checking.
+    const result = await togglePlaylistSong(playlistId, songId);
 
-      if (lookupError) {
-        toast.error(lookupError.message);
-        return;
-      }
-
-      if (existing) {
-        const { error } = await supabaseClient
-          .from("playlist_songs")
-          .delete()
-          .eq("playlist_id", playlistId)
-          .eq("song_id", songId);
-
-        if (error) {
-          toast.error(error.message);
-          return;
-        }
-        toast.success("Song removed from playlist");
-      } else {
-        // Append: one past the current highest position.
-        const { data: last } = await supabaseClient
-          .from("playlist_songs")
-          .select("position")
-          .eq("playlist_id", playlistId)
-          .order("position", { ascending: false })
-          .limit(1)
-          .maybeSingle();
-
-        const { error } = await supabaseClient.from("playlist_songs").insert({
-          playlist_id: playlistId,
-          song_id: songId,
-          position: (last?.position ?? -1) + 1,
-        });
-
-        if (error) {
-          toast.error(error.message);
-          return;
-        }
-        toast.success("Song added to playlist");
-      }
-
-      setMembership((prev) => {
-        const next = new Set(prev);
-        if (existing) next.delete(playlistId);
-        else next.add(playlistId);
-        return next;
-      });
+    if ("error" in result) {
+      toast.error(result.error);
       setIsModalOpen(false);
-      router.refresh();
-    } catch {
-      toast.error("An error occurred");
-      setIsModalOpen(false);
+      return;
     }
+
+    setMembership((prev) => {
+      const next = new Set(prev);
+      if (result.added) next.add(playlistId);
+      else next.delete(playlistId);
+      return next;
+    });
+
+    toast.success(
+      result.added ? "Song added to playlist" : "Song removed from playlist"
+    );
+    setIsModalOpen(false);
+    router.refresh();
   };
 
   return (
