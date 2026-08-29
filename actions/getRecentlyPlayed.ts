@@ -1,5 +1,6 @@
 import { Song } from "@/types";
 import { createClient } from "@/libs/supabase/server";
+import { logger } from "@/libs/logger";
 
 /**
  * The signed-in user's recently played tracks, most recent first, with
@@ -28,7 +29,7 @@ const getRecentlyPlayed = async (limit = 8): Promise<Song[]> => {
     .limit(limit * 6);
 
   if (error) {
-    console.error("[getRecentlyPlayed]", error.message);
+    logger.error(error.message, { scope: "getRecentlyPlayed" });
     return [];
   }
 

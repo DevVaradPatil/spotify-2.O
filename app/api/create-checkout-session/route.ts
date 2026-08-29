@@ -5,6 +5,7 @@ import { z } from "zod";
 import { stripe } from "@/libs/stripe";
 import { getURL } from "@/libs/helpers";
 import { createOrRetrieveCustomer } from "@/libs/supabaseAdmin";
+import { logger } from "@/libs/logger";
 
 const checkoutSchema = z.object({
   price: z.object({
@@ -74,7 +75,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ sessionId: session.id });
   } catch (err) {
-    console.error("[create-checkout-session]", err);
+    logger.error("Checkout session failed", { scope: "create-checkout-session" }, err);
     return new NextResponse("Internal Error", { status: 500 });
   }
 }

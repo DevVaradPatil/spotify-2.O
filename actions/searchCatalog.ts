@@ -1,6 +1,7 @@
 import { Artist, Song } from "@/types";
 import { createPublicClient } from "@/libs/supabase/public";
 import getSongs from "./getSongs";
+import { logger } from "@/libs/logger";
 
 const DEFAULT_LIMIT = 60;
 
@@ -59,12 +60,15 @@ const searchCatalog = async (
   ]);
 
   if (songsResult.error) {
-    console.error("[searchCatalog] songs", songsResult.error.message);
+    logger.error(songsResult.error.message, { scope: "searchCatalog", part: "songs" });
   }
   // The artists table does not exist until migration 8 is applied; an empty
   // list is the right degradation rather than a broken search page.
   if (artistsResult.error) {
-    console.error("[searchCatalog] artists", artistsResult.error.message);
+    logger.error(artistsResult.error.message, {
+      scope: "searchCatalog",
+      part: "artists",
+    });
   }
 
   return {

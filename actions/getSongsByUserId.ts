@@ -1,5 +1,6 @@
 import { Song } from "@/types";
 import { createClient } from "@/libs/supabase/server";
+import { logger } from "@/libs/logger";
 
 const getSongsByUserId = async (): Promise<Song[]> => {
   const supabase = await createClient();
@@ -7,7 +8,7 @@ const getSongsByUserId = async (): Promise<Song[]> => {
   const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
 
   if (sessionError) {
-    console.error("[getSongsByUserId]", sessionError.message);
+    logger.error(sessionError.message, { scope: "getSongsByUserId" });
     return [];
   }
 
@@ -24,7 +25,7 @@ const getSongsByUserId = async (): Promise<Song[]> => {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("[getSongsByUserId]", error.message);
+    logger.error(error.message, { scope: "getSongsByUserId" });
     return [];
   }
 

@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 import { Song } from "@/types";
 import { createPublicClient } from "@/libs/supabase/public";
 import { CACHE_TAGS, CACHE_TTL_SECONDS } from "@/libs/cacheTags";
+import { logger } from "@/libs/logger";
 
 const DEFAULT_LIMIT = 60;
 
@@ -26,7 +27,7 @@ const getSongs = unstable_cache(
       .limit(limit);
 
     if (error) {
-      console.error("[getSongs]", error.message);
+      logger.error(error.message, { scope: "getSongs" });
       return [];
     }
 

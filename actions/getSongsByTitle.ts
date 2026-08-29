@@ -1,6 +1,7 @@
 import { Song } from "@/types";
 import { createPublicClient } from "@/libs/supabase/public";
 import getSongs from "./getSongs";
+import { logger } from "@/libs/logger";
 
 const DEFAULT_LIMIT = 60;
 
@@ -27,7 +28,7 @@ const getSongsByTitle = async (
     .limit(limit);
 
   if (error) {
-    console.error("[getSongsByTitle]", error.message);
+    logger.error(error.message, { scope: "getSongsByTitle" });
     return [];
   }
 

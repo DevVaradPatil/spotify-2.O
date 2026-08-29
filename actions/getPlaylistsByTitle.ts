@@ -1,6 +1,7 @@
 import { Playlist } from "@/types";
 import { createClient } from "@/libs/supabase/server";
 import getPlaylists from "./getPlaylists";
+import { logger } from "@/libs/logger";
 
 const getPlaylistsByTitle = async (title: string): Promise<Playlist[]> => {
   const supabase = await createClient();
@@ -16,7 +17,7 @@ const getPlaylistsByTitle = async (title: string): Promise<Playlist[]> => {
     .ilike("name", `%${title}%`)
     .order("created_at", { ascending: false });
   if (error) {
-    console.log(error);
+    logger.error("Query failed", { scope: "actions\getPlaylistsByTitle" }, error);
   }
 
   return data ?? [];

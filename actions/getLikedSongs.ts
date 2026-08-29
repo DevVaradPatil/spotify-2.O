@@ -1,5 +1,6 @@
 import { Song } from "@/types";
 import { createClient } from "@/libs/supabase/server";
+import { logger } from "@/libs/logger";
 
 const getLikedSongs = async (): Promise<Song[]> => {
   const supabase = await createClient();
@@ -18,7 +19,7 @@ const getLikedSongs = async (): Promise<Song[]> => {
     .eq("user_id", session.user.id)
     .order("created_at", { ascending: false });
   if (error) {
-    console.log(error);
+    logger.error("Query failed", { scope: "actions\getLikedSongs" }, error);
     return [];
   }
 

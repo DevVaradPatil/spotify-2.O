@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/libs/stripe";
 import { getURL } from "@/libs/helpers";
 import { createOrRetrieveCustomer } from "@/libs/supabaseAdmin";
+import { logger } from "@/libs/logger";
 
 export async function POST() {
   try {
@@ -36,7 +37,7 @@ export async function POST() {
     // Previously this branch constructed a NextResponse without returning it,
     // so the route resolved to undefined and the client called
     // window.location.assign(undefined).
-    console.error("[create-portal-link]", err);
+    logger.error("Portal link failed", { scope: "create-portal-link" }, err);
     return new NextResponse("Internal Error", { status: 500 });
   }
 }

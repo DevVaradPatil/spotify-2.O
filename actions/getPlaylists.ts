@@ -1,5 +1,6 @@
 import { Playlist } from "@/types";
 import { createClient } from "@/libs/supabase/server";
+import { logger } from "@/libs/logger";
 
 /**
  * Returns only the signed-in user's playlists.
@@ -27,7 +28,7 @@ const getPlaylists = async (): Promise<Playlist[]> => {
     .order("created_at", { ascending: false });
 
   if (error) {
-    console.error("[getPlaylists]", error.message);
+    logger.error(error.message, { scope: "getPlaylists" });
     return [];
   }
 

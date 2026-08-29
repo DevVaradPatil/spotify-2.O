@@ -475,12 +475,12 @@ Commits `8cd3c90`, `c52f869`.
 | Test foundation — Vitest (CQ-9)                               | L      | ◐ 58 tests over queue rules, the player store and three components. **No e2e yet**              |
 | Fix room sync end-to-end (FEAT-6)                             | L      | ◐ `62d3d96` — track, chat, play/pause and position sync. **Not verified with two live clients** |
 | Playlist enhancements (FEAT-13)                               | M      | ◐ Queue reorder done. Persisted playlist reorder, public/private and share links not started    |
-| Recently played / history (FEAT-14)                           | M      | ✅ `624fc46` — migration 7 pending                                                              |
-| Artists & follows (FEAT-15)                                   | L      | ✅ `624fc46` — migration 8 pending                                                              |
+| Recently played / history (FEAT-14)                           | M      | ✅ `624fc46` — migration 7 applied and verified                                                 |
+| Artists & follows (FEAT-15)                                   | L      | ✅ `624fc46` — migration 8 applied, 12 artists backfilled                                       |
 | Search improvements (FEAT-16)                                 | M      | ✅ `HEAD` — title _or_ author, artist results, filters, recent searches                         |
 | Migrate mutations to Server Actions (CQ-7, CQ-15)             | L      | ✅ `HEAD` — every write goes through a validated action. Uploads stay client→storage            |
-| PWA / offline (FEAT-17)                                       | M      | ⬜ Not started                                                                                  |
-| Sentry + structured logging (CQ-14)                           | M      | ⬜ Not started                                                                                  |
+| PWA / offline (FEAT-17)                                       | M      | ✅ Manifest, offline page, conservative service worker                                          |
+| Sentry + structured logging (CQ-14)                           | M      | ◐ Structured logger with redaction; Sentry left unwired (needs a DSN)                           |
 | Real caching strategy (PERF-4)                                | M      | ⬜ Not started — carried over from Phase 2                                                      |
 
 ## 5. Breaking Changes / Risks

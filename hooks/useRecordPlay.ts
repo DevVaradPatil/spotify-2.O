@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 
 import { useSupabaseClient } from "./useSupabase";
 import { useUser } from "./useUser";
+import { logger } from "@/libs/logger";
 
 /**
  * Time a track must remain active before it counts as played, so skipping
@@ -38,7 +39,7 @@ const useRecordPlay = (songId: number | undefined) => {
 
       // History is a nice-to-have; a failure here must never interrupt
       // playback, so it is logged rather than surfaced.
-      if (error) console.error("[useRecordPlay]", error.message);
+      if (error) logger.warn(error.message, { scope: "useRecordPlay", songId });
     }, DWELL_MS);
 
     return () => clearTimeout(timer);

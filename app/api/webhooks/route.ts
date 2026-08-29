@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { revalidateTag } from "next/cache";
 
 import { CACHE_TAGS } from "@/libs/cacheTags";
+import { logger } from "@/libs/logger";
 
 import { stripe } from "@/libs/stripe";
 import {
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
     if (!sig || !webhookSecret) return;
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
   } catch (err: any) {
-    console.log(`❌ Error message: ${err.message}`);
+    logger.error("Signature verification failed", { scope: "stripe-webhook" }, err);
     return new NextResponse(`Webhook Error: ${err.message}`, { status: 400 });
   }
 
@@ -79,7 +80,11 @@ export async function POST(request: Request) {
           throw new Error("Unhandled relevant event!");
       }
     } catch (error) {
-      console.log(error);
+      logger.error(
+        "Webhook handler failed",
+        { scope: "stripe-webhook", eventType: event.type },
+        error
+      );
       return new NextResponse('Webhook error: "Webhook handler failed. View logs."', {
         status: 400,
       });

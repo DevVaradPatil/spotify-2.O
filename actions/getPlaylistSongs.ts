@@ -1,5 +1,6 @@
 import { Song } from "@/types";
 import { createClient } from "@/libs/supabase/server";
+import { logger } from "@/libs/logger";
 
 /**
  * Reads playlist membership from the playlist_songs join table.
@@ -18,7 +19,7 @@ const getPlaylistSongs = async (playlistId: number): Promise<Song[]> => {
     .order("position", { ascending: true });
 
   if (error) {
-    console.error("[getPlaylistSongs]", error.message);
+    logger.error(error.message, { scope: "getPlaylistSongs" });
     return [];
   }
 

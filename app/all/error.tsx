@@ -4,6 +4,8 @@ import Box from "@/components/Box";
 import Button from "@/components/Button";
 import { useEffect } from "react";
 
+import { logger } from "@/libs/logger";
+
 interface ErrorProps {
   error: Error & { digest?: string };
   reset: () => void;
@@ -11,7 +13,7 @@ interface ErrorProps {
 
 const Error: React.FC<ErrorProps> = ({ error, reset }) => {
   useEffect(() => {
-    console.error(error);
+    logger.error(error.message, { scope: "route-error", digest: error.digest }, error);
   }, [error]);
 
   return (

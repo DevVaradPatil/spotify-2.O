@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 import { ProductWithPrice } from "@/types";
 import { createPublicClient } from "@/libs/supabase/public";
 import { CACHE_TAGS, CACHE_TTL_SECONDS } from "@/libs/cacheTags";
+import { logger } from "@/libs/logger";
 
 /**
  * The pricing table is global and changes only when Stripe sends a
@@ -22,7 +23,7 @@ const getActiveProductsWithPrices = unstable_cache(
       .order("unit_amount", { referencedTable: "prices" });
 
     if (error) {
-      console.error("[getActiveProductsWithPrices]", error.message);
+      logger.error(error.message, { scope: "getActiveProductsWithPrices" });
       return [];
     }
 

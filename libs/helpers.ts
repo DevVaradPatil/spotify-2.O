@@ -1,4 +1,5 @@
 import { Price } from "@/types";
+import { logger } from "./logger";
 
 export const getURL = () => {
   let url =
@@ -19,8 +20,6 @@ export const postData = async ({
   url: string;
   data?: { price: Price };
 }) => {
-  console.log("posting,", url, data);
-
   const res: Response = await fetch(url, {
     method: "POST",
     headers: new Headers({ "Content-Type": "application/json" }),
@@ -29,7 +28,13 @@ export const postData = async ({
   });
 
   if (!res.ok) {
-    console.log("Error in postData", { url, data, res });
+    // The request body carried a price object, not credentials, but it is
+    // still request data — the URL and status are enough to debug with.
+    logger.error("Request failed", {
+      scope: "postData",
+      url,
+      status: res.status,
+    });
 
     throw Error(res.statusText);
   }

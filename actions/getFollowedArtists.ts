@@ -1,5 +1,6 @@
 import { Artist } from "@/types";
 import { createClient } from "@/libs/supabase/server";
+import { logger } from "@/libs/logger";
 
 /** Artists the signed-in user follows, most recently followed first. */
 const getFollowedArtists = async (limit = 12): Promise<Artist[]> => {
@@ -19,7 +20,7 @@ const getFollowedArtists = async (limit = 12): Promise<Artist[]> => {
     .limit(limit);
 
   if (error) {
-    console.error("[getFollowedArtists]", error.message);
+    logger.error(error.message, { scope: "getFollowedArtists" });
     return [];
   }
 
